@@ -1,0 +1,15 @@
+{
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"label": "Clean Honcho SocketIO Watch Schedule Worker",
+			"detail": "Send SIGINT to honcho processes when stopping the VS Code debug session.",
+			"type": "shell",
+			"command": "pkill -SIGINT -f bench; pkill -SIGINT -f socketio",
+			"presentation": {
+				"reveal": "silent",
+				"close": true
+			}
+		}
+	]
+}
