@@ -10,6 +10,9 @@ __pycache__/
 # Node
 node_modules/
 
+# Database dumps
+*.sql
+
 # Editor / OS
 .DS_Store
 *.swp
