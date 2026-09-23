@@ -1,13 +1,16 @@
 import frappe
 from frappe.tests.utils import FrappeTestCase
 
+from scout_manager.scout_manager.bank_reconciliation.default_configs import (
+	DEFAULT_CONFIG_NAME,
+	sync_desjardins_default_config,
+)
 from scout_manager.scout_manager.bank_reconciliation.test_csv_importer import make_sample_csv
-
-DESJARDINS_CONFIG = "ca/desjardins/account.json"
 
 
 class TestScoutBankImport(FrappeTestCase):
 	def setUp(self):
+		sync_desjardins_default_config()
 		self.company = frappe.defaults.get_global_default("company") or "_Test Company"
 		self.bank_account = self._ensure_bank_account()
 
@@ -48,7 +51,7 @@ class TestScoutBankImport(FrappeTestCase):
 			{
 				"doctype": "Scout Bank Import",
 				"import_file": import_file,
-				"import_config": DESJARDINS_CONFIG,
+				"import_config": DEFAULT_CONFIG_NAME,
 				"bank_account": self.bank_account,
 			}
 		).insert(ignore_permissions=True)
@@ -80,7 +83,7 @@ class TestScoutBankImport(FrappeTestCase):
 			{
 				"doctype": "Scout Bank Import",
 				"import_file": import_file,
-				"import_config": DESJARDINS_CONFIG,
+				"import_config": DEFAULT_CONFIG_NAME,
 			}
 		)
 

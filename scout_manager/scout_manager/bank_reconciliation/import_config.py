@@ -51,6 +51,16 @@ class ImportConfig:
 		content = frappe.get_doc("File", {"file_url": file_url}).get_content()
 		return cls(json.loads(content))
 
+	@classmethod
+	def from_doc(cls, doc) -> "ImportConfig":
+		if isinstance(doc, str):
+			doc = frappe.get_doc("Bank Import Config", doc)
+
+		if doc.disabled:
+			frappe.throw(_("Import config {0} is disabled").format(doc.config_name))
+
+		return cls(json.loads(doc.config_json))
+
 
 def list_bundled_configs() -> list[str]:
 	configs: list[str] = []

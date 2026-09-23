@@ -9,7 +9,8 @@ from scout_manager.scout_manager.bank_reconciliation.bank_account_matcher import
 from scout_manager.scout_manager.bank_reconciliation.csv_importer import parse_csv
 from scout_manager.scout_manager.bank_reconciliation.file_reader import read_import_file_bytes
 from scout_manager.scout_manager.bank_reconciliation.duplicate_detector import deduplicate_transactions
-from scout_manager.scout_manager.bank_reconciliation.import_config import ImportConfig, get_default_config_path
+from scout_manager.scout_manager.bank_reconciliation.default_configs import get_default_import_config
+from scout_manager.scout_manager.bank_reconciliation.import_config import ImportConfig
 
 
 class ScoutBankImport(Document):
@@ -24,7 +25,7 @@ class ScoutBankImport(Document):
 		bank_account: DF.Link
 		closing_balance: DF.Currency
 		detected_account_number: DF.Data | None
-		import_config: DF.Literal["ca/desjardins/account.json"]
+		import_config: DF.Link
 		import_file: DF.Attach
 		import_log: DF.LongText | None
 		opening_balance: DF.Currency
@@ -34,8 +35,16 @@ class ScoutBankImport(Document):
 		status: DF.Literal["Draft", "Imported", "Partial", "Failed"]
 	# end: auto-generated types
 
+	def before_insert(self):
+		if not self.import_config:
+			self.import_config = get_default_import_config()
+
 	def validate(self):
 		self._validate_permissions()
+		if not self.import_config:
+			self.import_config = get_default_import_config()
+		if not self.import_config:
+			frappe.throw(_("No default import config found. Create a Bank Import Config and mark one as default."))
 
 	def _validate_permissions(self):
 		required = {
@@ -171,8 +180,11 @@ class ScoutBankImport(Document):
 		return parse_csv(content, config)
 
 	def _get_config(self) -> ImportConfig:
-		config_path = self.import_config or get_default_config_path()
-		return ImportConfig.from_path(config_path)
+		if not self.import_config:
+			self.import_config = get_default_import_config()
+		if not self.import_config:
+			frappe.throw(_("Select an import config"))
+		return ImportConfig.from_doc(self.import_config)
 
 
 @frappe.whitelist()
@@ -182,15 +194,8 @@ def preview_bank_import(import_file, import_config=None, bank_account=None):
 		{
 			"doctype": "Scout Bank Import",
 			"import_file": import_file,
-			"import_config": import_config or get_default_config_path(),
+			"import_config": import_config or get_default_import_config(),
 			"bank_account": bank_account,
 		}
 	)
 	return doc.preview_import()
-
-
-@frappe.whitelist()
-def get_import_config_options():
-	from scout_manager.scout_manager.bank_reconciliation.import_config import list_bundled_configs
-
-	return list_bundled_configs()

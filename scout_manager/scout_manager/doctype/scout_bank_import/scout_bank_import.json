@@ -32,12 +32,11 @@
    "reqd": 1
   },
   {
-   "default": "ca/desjardins/account.json",
    "fieldname": "import_config",
-   "fieldtype": "Select",
+   "fieldtype": "Link",
    "in_list_view": 1,
    "label": "Import Config",
-   "options": "ca/desjardins/account.json",
+   "options": "Bank Import Config",
    "reqd": 1
   },
   {

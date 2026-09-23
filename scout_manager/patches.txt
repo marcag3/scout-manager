@@ -8,3 +8,4 @@ scout_manager.patches.v1_0.remove_site_customizations
 scout_manager.patches.v1_0.rename_french_assets
 scout_manager.patches.v1_0.update_renamed_asset_links
 scout_manager.patches.v1_0.verify_site_customizations
+scout_manager.patches.v1_0.migrate_bank_import_config
