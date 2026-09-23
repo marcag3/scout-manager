@@ -1,0 +1,14 @@
+[
+ {
+  "doctype": "Custom Field",
+  "name": "Cost Center-custom_ordre_affichage",
+  "dt": "Cost Center",
+  "fieldname": "custom_ordre_affichage",
+  "fieldtype": "Int",
+  "label": "Ordre d'affichage",
+  "insert_after": "cost_center_name",
+  "module": "Scout Manager",
+  "default": "0",
+  "non_negative": 1
+ }
+]

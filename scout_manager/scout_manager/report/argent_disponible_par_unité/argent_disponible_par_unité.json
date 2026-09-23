@@ -6,8 +6,8 @@
  "doctype": "Report",
  "is_standard": "Yes",
  "module": "Scout Manager",
- "name": "Balance sheet by cost center",
- "report_name": "Balance sheet by cost center",
+ "name": "Argent disponible par unité",
+ "report_name": "Argent disponible par unité",
  "report_type": "Script Report",
  "ref_doctype": "GL Entry",
  "filters": [
@@ -22,7 +22,7 @@
   },
   {
    "fieldname": "to_date",
-   "label": "En date du",
+   "label": "Au",
    "fieldtype": "Date",
    "options": null,
    "mandatory": 1,

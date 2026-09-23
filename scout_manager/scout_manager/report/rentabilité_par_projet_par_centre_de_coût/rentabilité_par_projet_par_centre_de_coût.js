@@ -1,21 +1,9 @@
 frappe.provide("frappe.query_reports");
 
 const REPORT_NAME = "Rentabilité par projet par centre de coût";
-
-const COST_CENTER_BY_COLUMN = {
-	clan: "Clan - 188",
-	colonie: "Colonie - 188",
-	groupe: "Groupe - 188",
-	louvette: "Louvette - 188",
-	meute: "Meute - 188",
-	troupe: "Troupe - 188",
-};
-
-const DRILL_COLUMNS = new Set([
-	...Object.keys(COST_CENTER_BY_COLUMN),
-	"autres",
-	"total",
-]);
+const DOCTYPE_FISCAL_YEAR = "Fiscal Year";
+const REPORT_GENERAL_LEDGER = "General Ledger";
+const DRILL_SUFFIX_COLUMNS = new Set(["autres", "total"]);
 
 frappe.query_reports[REPORT_NAME] = {
 	onload(report) {
@@ -28,7 +16,7 @@ frappe.query_reports[REPORT_NAME] = {
 				return;
 			}
 			frappe.db.get_value(
-				"Fiscal Year",
+				DOCTYPE_FISCAL_YEAR,
 				fiscal_year,
 				["year_start_date", "year_end_date"],
 				(r) => {
@@ -43,10 +31,11 @@ frappe.query_reports[REPORT_NAME] = {
 		}
 	},
 
-	open_general_ledger(project, column_fieldname) {
+	open_general_ledger(project, fieldname) {
 		const report = frappe.query_report;
 		const company = report.get_filter_value("company");
 		const fiscal_year = report.get_filter_value("fiscal_year");
+		const column = report.columns.find((col) => col.fieldname === fieldname);
 
 		if (!company || !fiscal_year || !project) {
 			frappe.msgprint(
@@ -63,13 +52,12 @@ frappe.query_reports[REPORT_NAME] = {
 				project,
 			};
 
-			const cost_center = COST_CENTER_BY_COLUMN[column_fieldname];
-			if (cost_center) {
-				route_options.cost_center = cost_center;
+			if (column?.cost_center) {
+				route_options.cost_center = column.cost_center;
 			}
 
 			frappe.route_options = route_options;
-			frappe.set_route("query-report", "General Ledger");
+			frappe.set_route("query-report", REPORT_GENERAL_LEDGER);
 		};
 
 		if (report.fy_dates?.year_start_date) {
@@ -81,7 +69,7 @@ frappe.query_reports[REPORT_NAME] = {
 		}
 
 		frappe.db.get_value(
-			"Fiscal Year",
+			DOCTYPE_FISCAL_YEAR,
 			fiscal_year,
 			["year_start_date", "year_end_date"],
 			(r) => {
@@ -98,7 +86,9 @@ frappe.query_reports[REPORT_NAME] = {
 			return value;
 		}
 
-		if (!DRILL_COLUMNS.has(column.fieldname)) {
+		const is_drillable =
+			column.cost_center || DRILL_SUFFIX_COLUMNS.has(column.fieldname);
+		if (!is_drillable) {
 			return value;
 		}
 

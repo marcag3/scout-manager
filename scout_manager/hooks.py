@@ -5,20 +5,27 @@ app_description = "Custom ERPNext app for scout troop management"
 app_email = "admin@example.com"
 app_license = "mit"
 
+from scout_manager.scout_manager.config.names import ARGENT_DISPONIBLE_BLOCK
+
 fixtures = [
 	{
 		"dt": "Custom HTML Block",
-		"filters": [["name", "=", "Argent disponible"]],
+		"filters": [["name", "=", ARGENT_DISPONIBLE_BLOCK]],
 	},
 	{
 		"dt": "Client Script",
 		"filters": [["module", "=", "Scout Manager"], ["enabled", "=", 1]],
+	},
+	{
+		"dt": "Custom Field",
+		"filters": [["fieldname", "=", "custom_ordre_affichage"], ["dt", "=", "Cost Center"]],
 	},
 ]
 
 after_migrate = [
 	"scout_manager.scout_manager.utils.widget.cleanup_retired_client_scripts",
 	"scout_manager.scout_manager.utils.widget.sync_argent_disponible_block",
+	"scout_manager.scout_manager.utils.cost_centers.seed_cost_center_display_order",
 	"scout_manager.scout_manager.setup.treasurer.setup_scout_treasurer",
 ]
 

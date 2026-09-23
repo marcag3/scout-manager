@@ -4,9 +4,8 @@ from frappe.desk.query_report import run
 from frappe.utils import today
 from frappe.utils.dashboard import cache_source
 
+from scout_manager.scout_manager.config.names import REPORT_RENTABILITE_CC
 from scout_manager.scout_manager.config.troop import DEFAULT_COMPANY
-
-REPORT_NAME = "Rentabilité par projet par centre de coût"
 # Projects with the largest profit or deficit; more bars make the labels unreadable.
 MAX_PROJECTS = 10
 
@@ -28,7 +27,11 @@ def get(
 	company = filters.get("company") or DEFAULT_COMPANY
 	fiscal_year = filters.get("fiscal_year") or get_fiscal_year(today(), company=company)[0]
 
-	data = run(REPORT_NAME, filters={"company": company, "fiscal_year": fiscal_year}, ignore_prepared_report=1)
+	data = run(
+		REPORT_RENTABILITE_CC,
+		filters={"company": company, "fiscal_year": fiscal_year},
+		ignore_prepared_report=1,
+	)
 	rows = [row for row in (data.get("result") or []) if isinstance(row, dict) and row.get("project")]
 	rows = sorted(rows, key=lambda row: abs(row.get("total") or 0), reverse=True)[:MAX_PROJECTS]
 	rows.sort(key=lambda row: row.get("total") or 0, reverse=True)

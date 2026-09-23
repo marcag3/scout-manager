@@ -2,7 +2,11 @@ import os
 
 import frappe
 
-RETIRED_CLIENT_SCRIPTS = ("set cost center payment", "set unit")
+from scout_manager.scout_manager.config.names import (
+	ARGENT_DISPONIBLE_BLOCK,
+	ARGENT_DISPONIBLE_CSS,
+	RETIRED_CLIENT_SCRIPTS,
+)
 
 
 def cleanup_retired_client_scripts():
@@ -13,18 +17,17 @@ def cleanup_retired_client_scripts():
 
 def sync_argent_disponible_block():
 	"""Keep Custom HTML Block styles in sync with the public CSS file."""
-	block_name = "Argent disponible"
-	if not frappe.db.exists("Custom HTML Block", block_name):
+	if not frappe.db.exists("Custom HTML Block", ARGENT_DISPONIBLE_BLOCK):
 		return
 
-	css_path = frappe.get_app_path("scout_manager", "public", "css", "argent_disponible_widget.css")
+	css_path = frappe.get_app_path("scout_manager", "public", "css", ARGENT_DISPONIBLE_CSS)
 	if not os.path.exists(css_path):
 		return
 
 	with open(css_path, encoding="utf-8") as css_file:
 		css = css_file.read()
 
-	block = frappe.get_doc("Custom HTML Block", block_name)
+	block = frappe.get_doc("Custom HTML Block", ARGENT_DISPONIBLE_BLOCK)
 	if block.style == css:
 		return
 

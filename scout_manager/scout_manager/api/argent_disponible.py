@@ -2,9 +2,12 @@ import frappe
 from frappe.desk.query_report import run
 from frappe.utils import getdate, today
 
-from scout_manager.scout_manager.config.troop import DEFAULT_COMPANY, UNIT_ORDER
-
-REPORT_NAME = "Argent disponible par unité"
+from scout_manager.scout_manager.config.names import REPORT_ARGENT_DISPONIBLE
+from scout_manager.scout_manager.config.troop import DEFAULT_COMPANY
+from scout_manager.scout_manager.report.argent_disponible_par_unité.argent_disponible_par_unité import (
+	AMOUNT_FIELDS,
+)
+from scout_manager.scout_manager.utils.cost_centers import get_unit_cost_centers
 
 
 @frappe.whitelist()
@@ -13,13 +16,14 @@ def get_argent_disponible_by_unit(company=None, to_date=None):
 	company = company or DEFAULT_COMPANY
 	to_date = getdate(to_date or today())
 
-	data = run(REPORT_NAME, filters={"company": company, "to_date": to_date})
+	data = run(REPORT_ARGENT_DISPONIBLE, filters={"company": company, "to_date": to_date})
 	rows = [row for row in (data.get("result") or []) if isinstance(row, dict)]
 
 	return {
 		"company": company,
 		"to_date": str(to_date),
-		"units": [_normalize_row(row) for row in _sort_units(rows)],
+		"currency": frappe.db.get_value("Company", company, "default_currency"),
+		"units": [_normalize_row(row) for row in _sort_units(rows, company)],
 		"totals": _calc_totals(rows),
 	}
 
@@ -29,21 +33,17 @@ def _normalize_row(row):
 	return {
 		"name": cost_center_name,
 		"cost_center": row.get("cost_center"),
-		"banque": row.get("banque") or 0,
-		"caisse": row.get("caisse") or 0,
-		"ar": row.get("ar") or 0,
-		"passif": row.get("passif") or 0,
-		"disponible": row.get("disponible") or 0,
-		"disponible_ar": row.get("disponible_ar") or 0,
+		**{field: row.get(field) or 0 for field in AMOUNT_FIELDS},
 	}
 
 
-def _sort_units(rows):
-	order = {name: index for index, name in enumerate(UNIT_ORDER)}
+def _sort_units(rows, company):
+	order = {unit["name"]: index for index, unit in enumerate(get_unit_cost_centers(company))}
 
 	def sort_key(row):
-		label = row.get("cost_center_name") or row.get("cost_center") or ""
-		return (order.get(label, len(UNIT_ORDER)), label)
+		cost_center = row.get("cost_center") or ""
+		label = row.get("cost_center_name") or cost_center
+		return (order.get(cost_center, len(order)), label)
 
 	return sorted(rows, key=sort_key)
 

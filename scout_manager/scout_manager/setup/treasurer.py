@@ -5,6 +5,12 @@ import frappe
 from frappe.modules.export_file import strip_default_fields
 from frappe.modules.utils import create_directory_on_app_path
 
+from scout_manager.scout_manager.config.names import (
+	REPORT_ARGENT_DISPONIBLE,
+	REPORT_BALANCE_SHEET_CC,
+	REPORT_RENTABILITE_CC,
+)
+
 ROLE = "Scout Treasurer"
 WORKSPACE = "Scout Treasurer"
 SIDEBAR = "Scout Treasurer"
@@ -139,11 +145,11 @@ REPORTS = [
 	"Trial Balance",
 	"Profit and Loss Statement",
 	"Balance Sheet",
-	"Balance sheet by cost center",
+	REPORT_BALANCE_SHEET_CC,
 	"Cash Flow",
 	"General Ledger",
-	"Rentabilité par projet par centre de coût",
-	"Argent disponible par unité",
+	REPORT_RENTABILITE_CC,
+	REPORT_ARGENT_DISPONIBLE,
 	"Bank Reconciliation Statement",
 ]
 

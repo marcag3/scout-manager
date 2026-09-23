@@ -6,25 +6,25 @@
  "doctype": "Report",
  "is_standard": "Yes",
  "module": "Scout Manager",
- "name": "Balance sheet by cost center",
- "report_name": "Balance sheet by cost center",
+ "name": "Rentabilité par projet par centre de coût",
+ "report_name": "Rentabilité par projet par centre de coût",
  "report_type": "Script Report",
  "ref_doctype": "GL Entry",
  "filters": [
   {
-   "fieldname": "company",
-   "label": "Compagnie",
+   "fieldname": "fiscal_year",
+   "label": "Année financière",
    "fieldtype": "Link",
-   "options": "Company",
+   "options": "Fiscal Year",
    "mandatory": 1,
    "wildcard_filter": 0,
    "default": null
   },
   {
-   "fieldname": "to_date",
-   "label": "En date du",
-   "fieldtype": "Date",
-   "options": null,
+   "fieldname": "company",
+   "label": "Compagnie",
+   "fieldtype": "Link",
+   "options": "Company",
    "mandatory": 1,
    "wildcard_filter": 0,
    "default": null
@@ -39,6 +39,9 @@
   },
   {
    "role": "Auditor"
+  },
+  {
+   "role": "Projects User"
   }
  ]
 }
