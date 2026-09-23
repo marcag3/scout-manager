@@ -5,7 +5,7 @@ frappe.dashboards.chart_sources["Scout Project Profitability"] = {
 	filters: [
 		{
 			fieldname: "company",
-			label: __("Compagnie"),
+			label: __("Company"),
 			fieldtype: "Link",
 			options: "Company",
 			default: frappe.defaults.get_user_default("Company"),
@@ -13,7 +13,7 @@ frappe.dashboards.chart_sources["Scout Project Profitability"] = {
 		},
 		{
 			fieldname: "fiscal_year",
-			label: __("Année financière"),
+			label: __("Fiscal Year"),
 			fieldtype: "Link",
 			options: "Fiscal Year",
 			default: (frappe.boot.current_fiscal_year || [])[0],

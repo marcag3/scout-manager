@@ -5,7 +5,7 @@ frappe.dashboards.chart_sources["Scout Cash Flow"] = {
 	filters: [
 		{
 			fieldname: "company",
-			label: __("Compagnie"),
+			label: __("Company"),
 			fieldtype: "Link",
 			options: "Company",
 			default: frappe.defaults.get_user_default("Company"),

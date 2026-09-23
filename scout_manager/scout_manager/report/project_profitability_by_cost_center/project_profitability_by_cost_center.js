@@ -1,6 +1,6 @@
 frappe.provide("frappe.query_reports");
 
-const REPORT_NAME = "Rentabilité par projet par centre de coût";
+const REPORT_NAME = "Project Profitability by Cost Center";
 const DOCTYPE_FISCAL_YEAR = "Fiscal Year";
 const REPORT_GENERAL_LEDGER = "General Ledger";
 const DRILL_SUFFIX_COLUMNS = new Set(["autres", "total"]);
@@ -10,7 +10,7 @@ frappe.query_reports[REPORT_NAME] = {
 	filters: [
 		{
 			fieldname: "company",
-			label: __("Compagnie"),
+			label: __("Company"),
 			fieldtype: "Link",
 			options: "Company",
 			default: frappe.defaults.get_user_default("Company"),
@@ -18,7 +18,7 @@ frappe.query_reports[REPORT_NAME] = {
 		},
 		{
 			fieldname: "fiscal_year",
-			label: __("Année financière"),
+			label: __("Fiscal Year"),
 			fieldtype: "Link",
 			options: "Fiscal Year",
 			default: (frappe.boot.current_fiscal_year || [])[0],
@@ -78,7 +78,7 @@ frappe.query_reports[REPORT_NAME] = {
 
 		if (!company || !fiscal_year || !project) {
 			frappe.msgprint(
-				__("Veuillez sélectionner la compagnie et l'année financière.")
+				__("Please select company and fiscal year.")
 			);
 			return;
 		}

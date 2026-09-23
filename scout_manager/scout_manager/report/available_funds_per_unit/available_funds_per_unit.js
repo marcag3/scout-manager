@@ -1,8 +1,8 @@
-frappe.query_reports["Argent disponible par unité"] = {
+frappe.query_reports["Available Funds per Unit"] = {
 	filters: [
 		{
 			fieldname: "company",
-			label: __("Compagnie"),
+			label: __("Company"),
 			fieldtype: "Link",
 			options: "Company",
 			default: frappe.defaults.get_user_default("Company"),
@@ -10,7 +10,7 @@ frappe.query_reports["Argent disponible par unité"] = {
 		},
 		{
 			fieldname: "to_date",
-			label: __("Au"),
+			label: __("To Date"),
 			fieldtype: "Date",
 			default: frappe.datetime.get_today(),
 			reqd: 1,

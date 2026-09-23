@@ -1,10 +1,10 @@
 """Shared identifiers for reports, widgets, and custom fields."""
 
-REPORT_ARGENT_DISPONIBLE = "Argent disponible par unité"
+REPORT_ARGENT_DISPONIBLE = "Available Funds per Unit"
 REPORT_BALANCE_SHEET_CC = "Balance sheet by cost center"
-REPORT_RENTABILITE_CC = "Rentabilité par projet par centre de coût"
+REPORT_RENTABILITE_CC = "Project Profitability by Cost Center"
 
-ARGENT_DISPONIBLE_BLOCK = "Argent disponible"
+ARGENT_DISPONIBLE_BLOCK = "Available Funds"
 ARGENT_DISPONIBLE_CSS = "argent_disponible_widget.css"
 ARGENT_DISPONIBLE_JS = "argent_disponible_widget.js"
 

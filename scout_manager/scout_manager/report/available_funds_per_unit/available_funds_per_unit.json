@@ -12,7 +12,7 @@
   {
    "fieldname": "company",
    "fieldtype": "Link",
-   "label": "Compagnie",
+   "label": "Company",
    "mandatory": 1,
    "options": "Company",
    "wildcard_filter": 0
@@ -20,7 +20,7 @@
   {
    "fieldname": "to_date",
    "fieldtype": "Date",
-   "label": "Au",
+   "label": "To Date",
    "mandatory": 1,
    "wildcard_filter": 0
   }
@@ -31,11 +31,11 @@
  "modified": "2026-09-22 23:45:18.842164",
  "modified_by": "Administrator",
  "module": "Scout Manager",
- "name": "Argent disponible par unit\u00e9",
+ "name": "Available Funds per Unit",
  "owner": "Administrator",
  "prepared_report": 0,
  "ref_doctype": "GL Entry",
- "report_name": "Argent disponible par unit\u00e9",
+ "report_name": "Available Funds per Unit",
  "report_type": "Script Report",
  "roles": [
   {

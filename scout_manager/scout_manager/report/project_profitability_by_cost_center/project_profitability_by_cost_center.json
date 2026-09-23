@@ -12,7 +12,7 @@
   {
    "fieldname": "company",
    "fieldtype": "Link",
-   "label": "Compagnie",
+   "label": "Company",
    "mandatory": 1,
    "options": "Company",
    "wildcard_filter": 0
@@ -20,7 +20,7 @@
   {
    "fieldname": "fiscal_year",
    "fieldtype": "Link",
-   "label": "Ann\u00e9e financi\u00e8re",
+   "label": "Fiscal Year",
    "mandatory": 1,
    "options": "Fiscal Year",
    "wildcard_filter": 0
@@ -32,11 +32,11 @@
  "modified": "2026-09-22 23:45:29.229420",
  "modified_by": "Administrator",
  "module": "Scout Manager",
- "name": "Rentabilit\u00e9 par projet par centre de co\u00fbt",
+ "name": "Project Profitability by Cost Center",
  "owner": "Administrator",
  "prepared_report": 0,
  "ref_doctype": "GL Entry",
- "report_name": "Rentabilit\u00e9 par projet par centre de co\u00fbt",
+ "report_name": "Project Profitability by Cost Center",
  "report_type": "Script Report",
  "roles": [
   {

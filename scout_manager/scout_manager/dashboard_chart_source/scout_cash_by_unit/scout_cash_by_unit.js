@@ -5,7 +5,7 @@ frappe.dashboards.chart_sources["Scout Cash by Unit"] = {
 	filters: [
 		{
 			fieldname: "company",
-			label: __("Compagnie"),
+			label: __("Company"),
 			fieldtype: "Link",
 			options: "Company",
 			default: frappe.defaults.get_user_default("Company"),
@@ -13,7 +13,7 @@ frappe.dashboards.chart_sources["Scout Cash by Unit"] = {
 		},
 		{
 			fieldname: "to_date",
-			label: __("Au"),
+			label: __("To Date"),
 			fieldtype: "Date",
 			default: frappe.datetime.get_today(),
 		},

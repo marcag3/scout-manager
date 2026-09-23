@@ -2,9 +2,9 @@
  {
   "docstatus": 0,
   "doctype": "Custom HTML Block",
-  "html": "<div class=\"fonds-live\" id=\"fonds-live-root\">\n  <div class=\"fonds-live__header\">\n    <div>\n      <div class=\"fonds-live__title\">Argent disponible par unité</div>\n      <div class=\"fonds-live__meta\" id=\"fonds-live-meta\">Chargement…</div>\n    </div>\n    <button type=\"button\" class=\"fonds-live__btn\" id=\"fonds-live-refresh\">Actualiser</button>\n  </div>\n  <div class=\"fonds-live__grid\" id=\"fonds-live-grid\"></div>\n  <div class=\"fonds-live__error\" id=\"fonds-live-error\" hidden></div>\n</div>",
+  "html": "<div class=\"fonds-live\" id=\"fonds-live-root\">\n  <div class=\"fonds-live__header\">\n    <div>\n      <div class=\"fonds-live__title\">Available Funds per Unit</div>\n      <div class=\"fonds-live__meta\" id=\"fonds-live-meta\">Loading…</div>\n    </div>\n    <button type=\"button\" class=\"fonds-live__btn\" id=\"fonds-live-refresh\">Refresh</button>\n  </div>\n  <div class=\"fonds-live__grid\" id=\"fonds-live-grid\"></div>\n  <div class=\"fonds-live__error\" id=\"fonds-live-error\" hidden></div>\n</div>",
   "modified": "2026-09-22 23:36:49.343189",
-  "name": "Argent disponible",
+  "name": "Available Funds",
   "private": 0,
   "roles": [
    {

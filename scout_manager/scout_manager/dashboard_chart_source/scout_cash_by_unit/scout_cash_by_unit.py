@@ -1,4 +1,5 @@
 import frappe
+from frappe import _
 from frappe.utils.dashboard import cache_source
 
 from scout_manager.scout_manager.api.argent_disponible import get_argent_disponible_by_unit
@@ -24,9 +25,9 @@ def get(
 	return {
 		"labels": [unit["name"] for unit in units],
 		"datasets": [
-			{"name": "Disponible", "values": [unit["disponible"] for unit in units]},
+			{"name": _("Available"), "values": [unit["disponible"] for unit in units]},
 			{
-				"name": "Disponible incluant les comptes à recevoir",
+				"name": _("Available incl. accounts receivable"),
 				"values": [unit["disponible_ar"] for unit in units],
 			},
 		],

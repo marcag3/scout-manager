@@ -1,5 +1,5 @@
 {
- "chart_name": "Argent disponible par unit\u00e9",
+ "chart_name": "Available Funds per Unit",
  "chart_type": "Custom",
  "creation": "2026-09-22 22:31:55.439816",
  "currency": "CAD",
@@ -14,7 +14,7 @@
  "modified": "2026-09-22 22:31:55.439816",
  "modified_by": "Administrator",
  "module": "Scout Manager",
- "name": "Argent disponible par unit\u00e9",
+ "name": "Available Funds per Unit",
  "number_of_groups": 0,
  "owner": "Administrator",
  "roles": [

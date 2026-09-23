@@ -6,10 +6,17 @@ from frappe.modules.export_file import strip_default_fields
 from frappe.modules.utils import create_directory_on_app_path
 
 from scout_manager.scout_manager.config.names import (
+	ARGENT_DISPONIBLE_BLOCK,
 	REPORT_ARGENT_DISPONIBLE,
 	REPORT_BALANCE_SHEET_CC,
 	REPORT_RENTABILITE_CC,
 )
+
+RENAMED_LINK_TARGETS = {
+	"Argent disponible par unité": REPORT_ARGENT_DISPONIBLE,
+	"Rentabilité par projet par centre de coût": REPORT_RENTABILITE_CC,
+	"Argent disponible": ARGENT_DISPONIBLE_BLOCK,
+}
 
 ROLE = "Scout Treasurer"
 WORKSPACE = "Scout Treasurer"
@@ -204,12 +211,61 @@ BANKING_SHORTCUTS = [
 
 
 def setup_scout_treasurer():
+	refresh_renamed_workspace_links()
 	ensure_role()
 	ensure_doctype_permissions()
 	ensure_report_permissions()
 	ensure_banking_workspace_links()
 	sync_scout_treasurer_sidebar()
 	set_default_workspace_for_role()
+
+
+def refresh_renamed_workspace_links():
+	"""Point workspace links at renamed English report and widget records."""
+	if not frappe.db.exists("Workspace", WORKSPACE):
+		return
+
+	workspace = frappe.get_doc("Workspace", WORKSPACE)
+	changed = False
+
+	for link in workspace.links:
+		new_target = RENAMED_LINK_TARGETS.get(link.link_to)
+		if new_target:
+			link.link_to = new_target
+			changed = True
+		if link.label in RENAMED_LINK_TARGETS:
+			link.label = RENAMED_LINK_TARGETS[link.label]
+			changed = True
+
+	for shortcut in workspace.shortcuts:
+		new_target = RENAMED_LINK_TARGETS.get(shortcut.link_to)
+		if new_target:
+			shortcut.link_to = new_target
+			changed = True
+		if shortcut.label in RENAMED_LINK_TARGETS:
+			shortcut.label = RENAMED_LINK_TARGETS[shortcut.label]
+			changed = True
+
+	for block in workspace.custom_blocks:
+		new_target = RENAMED_LINK_TARGETS.get(block.custom_block_name)
+		if new_target:
+			block.custom_block_name = new_target
+			block.label = new_target
+			changed = True
+
+	content = workspace.content
+	for old_name, new_name in RENAMED_LINK_TARGETS.items():
+		if old_name in content:
+			content = content.replace(old_name, new_name)
+			changed = True
+	if content != workspace.content:
+		workspace.content = content
+
+	if not changed:
+		return
+
+	workspace.flags.ignore_links = True
+	workspace.save(ignore_permissions=True)
 
 
 def ensure_role():
@@ -370,6 +426,7 @@ def sync_scout_treasurer_sidebar():
 	sidebar.items = []
 	for item in items:
 		sidebar.append("items", item)
+	sidebar.flags.ignore_links = True
 	sidebar.save(ignore_permissions=True)
 	_export_sidebar(sidebar)
 

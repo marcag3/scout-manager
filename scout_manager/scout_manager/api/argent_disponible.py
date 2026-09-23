@@ -4,7 +4,7 @@ from frappe.desk.query_report import run
 from frappe.utils import getdate, today
 
 from scout_manager.scout_manager.config.names import REPORT_ARGENT_DISPONIBLE
-from scout_manager.scout_manager.report.argent_disponible_par_unité.argent_disponible_par_unité import (
+from scout_manager.scout_manager.report.available_funds_per_unit.available_funds_per_unit import (
 	AMOUNT_FIELDS,
 )
 from scout_manager.scout_manager.utils.cost_centers import get_unit_cost_centers

@@ -21,7 +21,7 @@ APP_REPORTS = (
 APP_WORKSPACE_ASSETS = ("Scout Treasurer",)
 
 APP_DASHBOARD_CHARTS = (
-	"Argent disponible par unité",
+	"Available Funds per Unit",
 	"Flux de trésorerie (12 mois)",
 	"Pertes et profits (mensuel)",
 	"Rentabilité par projet",

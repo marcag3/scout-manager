@@ -570,8 +570,8 @@
    "icon": "table",
    "indent": 0,
    "keep_closed": 0,
-   "label": "Rentabilit\u00e9 par projet par centre de co\u00fbt",
-   "link_to": "Rentabilit\u00e9 par projet par centre de co\u00fbt",
+   "label": "Project Profitability by Cost Center",
+   "link_to": "Project Profitability by Cost Center",
    "link_type": "Report",
    "show_arrow": 0,
    "type": "Link"
@@ -582,8 +582,8 @@
    "icon": "table",
    "indent": 0,
    "keep_closed": 0,
-   "label": "Argent disponible par unit\u00e9",
-   "link_to": "Argent disponible par unit\u00e9",
+   "label": "Available Funds per Unit",
+   "link_to": "Available Funds per Unit",
    "link_type": "Report",
    "show_arrow": 0,
    "type": "Link"

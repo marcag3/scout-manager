@@ -31,6 +31,10 @@ scout_manager.init_argent_disponible_widget = function (root_element) {
 	const meta = root_element.querySelector(SELECTORS.meta);
 	const errBox = root_element.querySelector(SELECTORS.error);
 	const btn = root_element.querySelector(SELECTORS.refresh);
+	const title = root_element.querySelector(".fonds-live__title");
+
+	if (title) title.textContent = __("Available Funds per Unit");
+	if (btn) btn.textContent = __("Refresh");
 
 	let currency = frappe.defaults.get_default("currency");
 
@@ -48,10 +52,10 @@ scout_manager.init_argent_disponible_widget = function (root_element) {
 		const negative = item.disponible < 0 ? CSS_CLASS.negative : "";
 		const negativeAr = item.disponible_ar < 0 ? CSS_CLASS.negative : "";
 		const arLine = hasAr
-			? `<div class="${CSS_CLASS.ar}">+ ${money(item.ar)} ${__("à recevoir")} → <strong class="${CSS_CLASS.total}${negativeAr}">${money(item.disponible_ar)}</strong></div>`
+			? `<div class="${CSS_CLASS.ar}">+ ${money(item.ar)} ${__("receivable")} → <strong class="${CSS_CLASS.total}${negativeAr}">${money(item.disponible_ar)}</strong></div>`
 			: "";
 		const passifLine =
-			item.passif >= 0.01 ? ` · ${__("Passif")} ${money(item.passif)}` : "";
+			item.passif >= 0.01 ? ` · ${__("Liabilities")} ${money(item.passif)}` : "";
 
 		return `
 			<div class="${CSS_CLASS.card}">
@@ -59,7 +63,7 @@ scout_manager.init_argent_disponible_widget = function (root_element) {
 				<div class="${CSS_CLASS.hero}${negative}">${money(item.disponible)}</div>
 				${arLine}
 				<div class="${CSS_CLASS.details}">
-					${__("Banque")} ${money(item.banque)} · ${__("Caisse")} ${money(item.caisse)}${passifLine}
+					${__("Bank")} ${money(item.banque)} · ${__("Cash")} ${money(item.caisse)}${passifLine}
 				</div>
 			</div>
 		`;
@@ -70,7 +74,7 @@ scout_manager.init_argent_disponible_widget = function (root_element) {
 		const includeReceivables =
 			Math.abs((totals.disponible_ar || 0) - (totals.disponible || 0)) >= 0.01;
 		const receivablesSuffix = includeReceivables
-			? ` (${money(totals.disponible_ar)} ${__("incl. créances")})`
+			? ` (${money(totals.disponible_ar)} ${__("incl. receivables")})`
 			: "";
 
 		meta.textContent = `${frappe.datetime.str_to_user(data.to_date)} · ${__("total")} ${money(totals.disponible)}${receivablesSuffix}`;
@@ -79,8 +83,8 @@ scout_manager.init_argent_disponible_widget = function (root_element) {
 	async function refresh() {
 		setError("");
 		btn.disabled = true;
-		meta.textContent = __("Calcul en cours…");
-		grid.innerHTML = `<div class='${CSS_CLASS.loading}'>${__("Chargement des soldes…")}</div>`;
+		meta.textContent = __("Calculating…");
+		grid.innerHTML = `<div class='${CSS_CLASS.loading}'>${__("Loading balances…")}</div>`;
 
 		try {
 			const response = await frappe.call({
@@ -94,7 +98,7 @@ scout_manager.init_argent_disponible_widget = function (root_element) {
 			const units = data.units || [];
 
 			if (!units.length) {
-				throw new Error(__("Aucun centre de coût trouvé."));
+				throw new Error(__("No cost centers found."));
 			}
 
 			renderMeta(data);
@@ -102,7 +106,7 @@ scout_manager.init_argent_disponible_widget = function (root_element) {
 		} catch (error) {
 			console.error(error);
 			grid.innerHTML = "";
-			meta.textContent = __("Erreur");
+			meta.textContent = __("Error");
 			setError((error && error.message) || String(error));
 		} finally {
 			btn.disabled = false;
