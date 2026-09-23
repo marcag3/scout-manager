@@ -2,7 +2,7 @@
 
 **Status:** Draft  
 **Author:** Troop 188e Montréal-Nord  
-**Last updated:** 2026-09-21
+**Last updated:** 2026-09-22
 
 ---
 
@@ -12,7 +12,7 @@ Scout Manager is a custom ERPNext app for managing a scout troop's membership an
 
 The primary pain point is **bank reconciliation**, specifically importing Desjardins **CSV Accentué** statement files and matching bank transactions to payments with minimal manual steps. The troop previously used **Firefly III**, where a one-click import (community JSON config for Desjardins) worked reliably; **ERPNext has no equivalent** — stock Bank Statement Import expects manual column mapping and the reconciliation UX is far heavier.
 
-The proposed solution centers on **invoice allocation as the primary treasurer action** on a **dedicated Scout Bank Reconciliation page** — party, dimensions, and Payment Entry creation are inferred from confirmed allocations, with Interac description templates and aliases narrowing suggestions. **Party Alias rows are auto-learned** each time a reconciliation is confirmed, so repeat Interac lines require less work over time.
+The proposed solution centers on **invoice allocation as the primary treasurer action** — party, dimensions, and Payment Entry creation are inferred from confirmed allocations, with Interac description templates and **Bank Transaction Rules** narrowing suggestions. **Rules are auto-learned** each time a reconciliation is confirmed, so repeat Interac lines require less work over time. Reconciliation UX builds on ERPNext's **Banking** app where possible; custom code fills gaps (Desjardins CSV import, multi-party split, rule learning).
 
 Phase 1 targets the same import ease as Firefly III: a **config-driven CSV importer** that accepts the **community JSON bank-import configs** published for Firefly III (e.g. [ca/desjardins/account.json](https://github.com/firefly-iii/import-configurations/blob/main/ca/desjardins/account.json)) **without modification**. Upload the raw CSV Accentué file, zero column mapping, Bank Transactions created.
 
@@ -128,10 +128,10 @@ The treasurer currently follows this 15-step process for each bank transaction:
 | G2  | Duplicate-safe imports         | Re-importing overlapping periods flags or skips duplicates; no double Bank Transactions                                           |
 | G3  | Show all unreconciled work     | Default filters surface all unreconciled transactions up to To Date; no mandatory From Date                                       |
 | G4  | Allocation-centric reconcile   | Treasurer confirms suggested invoice allocation → one or more Payment Entries submitted → Bank Transaction reconciled             |
-| G5  | Smart allocation suggestions   | Open invoices pre-selected from amount match, Interac description, and alias lookup; party and dimensions inferred from selection |
+| G5  | Smart allocation suggestions   | Open invoices pre-selected from amount match, Interac description, and Bank Transaction Rule match; party and dimensions inferred from selection |
 | G6  | Closing balance from file      | Closing balance auto-populated from CSV metadata when present                                                                     |
 | G7  | Dedicated reconciliation page  | Stock Bank Reconciliation Tool replaced as treasurer entry point; no client-script patches to ERPNext core UI                     |
-| G8  | Learn from confirmed decisions | Each successful Confirm auto-creates or reinforces Party Alias rows from Interac descriptions + chosen party                      |
+| G8  | Learn from confirmed decisions | Each successful Confirm auto-creates or reinforces Bank Transaction Rules from Interac descriptions + chosen party                |
 
 
 ---
@@ -177,7 +177,7 @@ Select unreconciled bank line
         ▼
 Allocation panel (single screen)
         │
-        ├── Parse description → narrow invoice list (Interac patterns + Party Alias)
+        ├── Parse description → narrow invoice list (Interac patterns + Bank Transaction Rules)
         ├── Suggest allocation (priority order below)
         ├── Treasurer confirms or adjusts checkboxes / amounts
         │
@@ -200,8 +200,8 @@ Allocation panel (single screen)
 | -------- | ----------------------------------------------------------- | -------------------------------------------------------- |
 | 1        | One open invoice amount = bank amount exactly               | Pre-select that invoice                                  |
 | 2        | Sum of one customer's open Sales Invoices = deposit exactly | Pre-select all for that customer                         |
-| 3        | Interac / alias resolves party; amount matches subset       | Pre-select matching invoices (oldest first up to amount) |
-| 4        | Interac / alias resolves party; partial or ambiguous amount | Show that party's open invoices only; treasurer selects  |
+| 3        | Interac / rule resolves party; amount matches subset        | Pre-select matching invoices (oldest first up to amount) |
+| 4        | Interac / rule resolves party; partial or ambiguous amount  | Show that party's open invoices only; treasurer selects  |
 | 5        | No confident match                                          | Show full short open-invoice list; nothing pre-selected  |
 
 
@@ -215,7 +215,7 @@ Deposits suggest against `Sales Invoice`; withdrawals suggest against `Purchase 
 | `Sales Invoice`     | `party_type = Customer`, `party = customer` |
 | `Purchase Invoice`  | `party_type = Supplier`, `party = supplier` |
 | Allocated lines     | Payment Entry references and amounts        |
-| Invoice dimensions  | `project`, `cost_center` (warn if mixed)    |
+| Invoice dimensions  | `project`, `cost_center` (must match across all selected invoices; mixed values blocked) |
 
 
 
@@ -238,15 +238,15 @@ Matching pipeline:
 
 1. **Normalize** description (case, accents, whitespace, strip bank boilerplate).
 2. **Extract** name via known Interac templates (regex per template, maintained in parser config).
-3. **Resolve** via Party Alias table → `Customer` and/or `Supplier` (see §6.4).
+3. **Resolve** via **Bank Transaction Rule** → `party_type` and `party` (see §6.4).
 4. **Filter** open invoices to resolved party(ies) and direction-appropriate doc type.
 5. **Rank** by amount match (§6.2 priority table).
 
-First match wins by alias `priority` (boosted by `hit_count` for learned aliases); unmatched names are resolved on first Confirm and persisted for future imports (§6.7).
+First match wins by rule `priority`; unmatched names are resolved on first Confirm and persisted as new rules for future imports (§6.7).
 
-### 6.7 Alias learning from confirmed reconciliations
+### 6.7 Rule learning from confirmed reconciliations
 
-When the treasurer **Confirm**s a reconciliation, the system **learns** from that decision by creating or updating **Party Alias** rows. Manual alias entry is optional — routine Interac lines self-train over time.
+When the treasurer **Confirm**s a reconciliation, the system **learns** from that decision by creating or updating **Bank Transaction Rule** records (`classify_as = Payment Entry`). Manual rule entry is optional — routine Interac lines self-train over time. ERPNext's Banking app already applies matching rules to pre-fill party on Record Payment.
 
 ```
 Confirm (successful reconcile)
@@ -257,12 +257,12 @@ Extract learnable token from bank description (Interac name, etc.)
         ▼
 Derive (party_type, party) from confirmed invoice allocations
         │
-        ├── Single party in allocation → create or reinforce alias
-        ├── Multi-party split → learn one alias per party group (same extracted name, different party_type/party/direction)
-        └── Non-invoice / exception path → no alias learning
+        ├── Single party in allocation → create or reinforce rule
+        ├── Multi-party split → learn one rule per party group (same description pattern, different party_type/party/direction)
+        └── Non-invoice / exception path → no rule learning
         │
         ▼
-Next import: description_matcher + allocation_suggester use updated aliases
+Next import: ERPNext rule evaluation + allocation_suggester use updated rules
 ```
 
 
@@ -270,12 +270,12 @@ Next import: description_matcher + allocation_suggester use updated aliases
 #### What gets stored
 
 
-| Input from decision               | Alias field                                             |
-| --------------------------------- | ------------------------------------------------------- |
-| Normalized extracted Interac name | `extracted_name` (+ optional `pattern` substring match) |
-| Deposit vs withdrawal             | `direction`                                             |
-| Inferred from invoice doc type    | `party_type`, `party`                                   |
-| —                                 | `source = Auto`, `learned_from` → Bank Transaction      |
+| Input from decision               | Bank Transaction Rule field                         |
+| --------------------------------- | --------------------------------------------------- |
+| Normalized extracted Interac name | `description_rules` (Contains → extracted name)     |
+| Deposit vs withdrawal             | `transaction_type` (Deposit / Withdrawal)           |
+| Inferred from invoice doc type    | `party_type`, `party`                               |
+| —                                 | `classify_as = Payment Entry`, `company`            |
 
 
 
@@ -285,27 +285,27 @@ Next import: description_matcher + allocation_suggester use updated aliases
 
 | Situation                                                       | Action                                                                      |
 | --------------------------------------------------------------- | --------------------------------------------------------------------------- |
-| No matching alias for `(extracted_name, direction, party_type)` | **Create** new Party Alias                                                  |
-| Alias exists, same `party`                                      | **Reinforce** — increment `hit_count`, set `last_used`                      |
-| Alias exists, **different** `party`                             | **Do not overwrite** — log conflict; treasurer resolves in Party Alias list |
-| Treasurer corrected a wrong suggestion                          | Learn the **confirmed** mapping (same create/reinforce rules)               |
+| No matching rule for `(description pattern, transaction_type, party_type)` | **Create** new Bank Transaction Rule                                        |
+| Rule exists, same `party`                                                  | **Reinforce** — bump `priority` or update rule metadata                       |
+| Rule exists, **different** `party`                                         | **Do not overwrite** — log conflict; treasurer resolves in Banking → Rules    |
+| Treasurer corrected a wrong suggestion                                     | Learn the **confirmed** mapping (same create/reinforce rules)                 |
 
 
-Conflicts are rare once aliases stabilize; the UI surfaces them on the Party Alias DocType rather than silently picking a winner.
+Conflicts are rare once rules stabilize; the UI surfaces them in the Banking app's Rules list rather than silently picking a winner.
 
 #### Scope and limits
 
 - **Learnable descriptions:** Interac templates (primary), plus other parsed name patterns (e.g. `Paiement internet à {name}`) registered in `description_matcher.py`.
 - **Not learned:** Bank fees, internal transfers, and other exception-path reconciliations with no extractable party name.
-- **Dual-role parents:** Same extracted name on a **deposit** and **withdrawal** produces **separate** alias rows (Customer vs Supplier) — direction is part of the key.
-- **Multi-scout deposit:** One Interac from a parent paying for two scouts creates **two** Customer aliases only if Confirm produced two party groups with the same extracted name — matching then filters to both customers' invoices. Prefer reinforcing existing aliases when the treasurer picks the same allocation again.
+- **Dual-role parents:** Same extracted name on a **deposit** and **withdrawal** produces **separate** rules (Customer vs Supplier) — `transaction_type` is part of the key.
+- **Multi-scout deposit:** One Interac from a parent paying for two scouts creates **two** Customer rules only if Confirm produced two party groups with the same extracted name — matching then filters to both customers' invoices. Prefer reinforcing existing rules when the treasurer picks the same allocation again.
 
 
 
 #### Treasurer feedback
 
-- Optional toast on Confirm: *"Saved alias: MARIE-CLAIRE TREMBLAY → Luc Tremblay (Customer)"*.
-- Party Alias list filter: **Auto-learned** vs **Manual**; disable mistaken rows without deleting history.
+- Optional toast on Confirm: *"Saved rule: MARIE-CLAIRE TREMBLAY → Luc Tremblay (Customer)"*.
+- Banking → Settings → Rules for review; disable mistaken rules without deleting history.
 
 
 
@@ -320,7 +320,7 @@ Some parents both **pay scout fees** (money in → `Sales Invoice` / `Customer`)
 | Withdrawal + Interac to parent name | `Purchase Invoice` | Supplier (expense reimbursement) |
 
 
-**Direction disambiguates role** — the same normalized name in Party Alias may map to both a `Customer` (child's account) and a `Supplier` (parent as reimbursee). The matcher returns the role consistent with transaction direction unless the treasurer overrides in the allocation panel.
+**Direction disambiguates role** — the same normalized name may map to both a `Customer` (child's account) and a `Supplier` (parent as reimbursee) via separate Bank Transaction Rules distinguished by `transaction_type`. The matcher returns the role consistent with transaction direction unless the treasurer overrides in the allocation panel.
 
 When a parent pays for **multiple scouts** (multiple `Customer` records), one deposit may allocate to Sales Invoices across customers → see §6.5.
 
@@ -558,31 +558,31 @@ def reconcile_bank_transaction(bank_transaction, allocations, overrides=None):
     3. For each group: build + submit Payment Entry (dimensions from invoices)
     4. Link all Payment Entries to Bank Transaction
     5. Mark Bank Transaction Reconciled
-    6. Learn / reinforce Party Alias rows from description + confirmed allocations (§6.7, F9)
+    6. Learn / reinforce Bank Transaction Rules from description + confirmed allocations (§6.7, F9)
     7. Return payment names + status
     """
 ```
 
 
 
-#### F4 — Description matching (Interac + aliases)
+#### F4 — Description matching (Interac + Bank Transaction Rules)
 
-Description parsing **narrows the invoice list**; it does not replace allocation.
+Description parsing **narrows the invoice list**; it does not replace allocation. ERPNext's Banking app evaluates **Bank Transaction Rules** on import and during reconciliation; matched rules pre-fill party on Record Payment.
 
 
 | Signal                                         | Effect on suggestions                            |
 | ---------------------------------------------- | ------------------------------------------------ |
-| Interac deposit template + alias → Customer    | Filter to that customer's open Sales Invoices    |
-| Interac withdrawal template + alias → Supplier | Filter to that supplier's open Purchase Invoices |
+| Interac deposit template + rule → Customer     | Filter to that customer's open Sales Invoices    |
+| Interac withdrawal template + rule → Supplier  | Filter to that supplier's open Purchase Invoices |
 | `Paiement internet à {name}`                   | Supplier filter (non-Interac withdrawals)        |
 | Known fee / transfer keywords                  | Route to exception path (no invoice allocation)  |
 
 
-Maintain a **Party Alias** DocType for names that don't match ERPNext records exactly. A single contact may have **multiple alias rows** — one as Customer (fee payer), one as Supplier (reimbursee) — distinguished by `party_type` and matched together with transaction direction. Rows are **auto-created and reinforced on Confirm** (§6.7, F9); treasurers may also add or edit aliases manually.
+Use stock **Bank Transaction Rule** (`classify_as = Payment Entry`) for names that don't match ERPNext records exactly. A single contact may have **multiple rules** — one as Customer (fee payer), one as Supplier (reimbursee) — distinguished by `party_type` and `transaction_type`. Rules are **auto-created and reinforced on Confirm** (§6.7, F9); treasurers may also add or edit rules in Banking → Settings → Rules.
 
-#### F9 — Alias learning on Confirm
+#### F9 — Rule learning on Confirm
 
-After a successful reconcile, `alias_learner.learn_from_reconciliation()` runs automatically (no extra treasurer step).
+After a successful reconcile, `rule_learner.learn_from_reconciliation()` runs automatically (no extra treasurer step).
 
 ```python
 def learn_from_reconciliation(bank_transaction, allocation_groups):
@@ -590,21 +590,21 @@ def learn_from_reconciliation(bank_transaction, allocation_groups):
     allocation_groups: [{party_type, party, invoices, allocated_amount}, ...]
 
     For each group with a learnable extracted name from bank_transaction.description:
-      - upsert Party Alias (create, reinforce hit_count, or log conflict)
+      - upsert Bank Transaction Rule (create, reinforce priority, or log conflict)
     """
 ```
 
 
-| Behavior           | Detail                                                                          |
-| ------------------ | ------------------------------------------------------------------------------- |
-| Trigger            | Successful `reconcile_bank_transaction()` only                                  |
-| Key                | `(normalized extracted_name, direction, party_type)`                            |
-| Reinforce          | Same party → `hit_count += 1`, `last_used = now`                                |
-| Conflict           | Different party for same key → `Party Alias` conflict flag; no silent overwrite |
-| Suggestion ranking | Higher `hit_count` increases effective match priority in `allocation_suggester` |
+| Behavior           | Detail                                                                                  |
+| ------------------ | --------------------------------------------------------------------------------------- |
+| Trigger            | Successful `reconcile_bank_transaction()` only                                          |
+| Key                | `(description_rules pattern, transaction_type, party_type)`                             |
+| Reinforce          | Same party → increase `priority` or update rule metadata                                |
+| Conflict           | Different party for same key → log conflict; no silent overwrite; treasurer reviews Rules |
+| Suggestion ranking | Higher `priority` rules win in ERPNext rule evaluation                                  |
 
 
-Manual **Add alias** on the Scout page remains for pre-emptive setup (e.g. before first Interac arrives) and for fixing conflicts; Confirm is the primary learning path.
+Manual **Add rule** in Banking → Settings remains for pre-emptive setup (e.g. before first Interac arrives) and for fixing conflicts; Confirm is the primary learning path.
 
 #### F5 — Open invoice discovery without From Date
 
@@ -622,8 +622,10 @@ Load the global open invoice pool for allocation (list stays short in practice):
 
 When invoices are selected (manually or auto):
 
-- `project` ← from allocated invoices (if all match) or blank with warning.
-- `cost_center` ← from allocated invoices (if all match) or blank with warning.
+- `project` ← from allocated invoices when all references share the same value.
+- `cost_center` ← from allocated invoices when all references share the same value.
+- **Mixed dimensions are prohibited** — selecting invoices with different `project` or `cost_center` (including empty vs set) blocks submit with a clear error. Treasurer records separate payments per dimension group.
+- Implemented via `Payment Entry` `before_validate` hook in `scout_manager` (applies to Banking Record Payment, stock forms, and custom reconcile orchestration).
 - Never require manual re-entry when all selected invoices share the same dimensions.
 
 
@@ -669,13 +671,14 @@ scout_manager/
 │   │   ├── import_config.py          # Load + validate JSON config; role → column index
 │   │   ├── duplicate_detector.py     # Fingerprint + similarity
 │   │   ├── description_matcher.py    # Interac templates + description → party hint
-│   │   ├── allocation_suggester.py   # Open invoices + amount/alias ranking
-│   │   ├── alias_learner.py          # Auto-create / reinforce Party Alias on Confirm
+│   │   ├── allocation_suggester.py   # Open invoices + amount/rule ranking
+│   │   ├── rule_learner.py           # Auto-create / reinforce Bank Transaction Rule on Confirm
 │   │   ├── reconcile.py              # Orchestration: split PEs + reconcile + learn
 │   │   └── payment_builder.py        # PE from bank txn + invoice allocations
+│   ├── accounting/
+│   │   └── payment_entry.py          # Dimension inheritance hook (cost_center, project)
 │   ├── doctype/
-│   │   ├── scout_bank_import/        # Import wizard DocType (JSON config + CSV)
-│   │   └── party_alias/              # Description → party mappings
+│   │   └── scout_bank_import/        # Import wizard DocType (JSON config + CSV)
 │   ├── report/
 │   │   └── rentabilite_par_projet_par_centre_de_cout/  # Migrated Query Report (§8.6)
 │   │       ├── rentabilite_par_projet_par_centre_de_cout.json
@@ -725,28 +728,26 @@ scout_manager/
 
 
 
-#### Party Alias (v1)
+#### Bank Transaction Rule (stock ERPNext — no custom DocType)
+
+Use ERPNext's stock **Bank Transaction Rule** DocType (`classify_as = Payment Entry`). Key fields for scout reconciliation:
 
 
-| Field            | Type                    | Purpose                                                                               |
-| ---------------- | ----------------------- | ------------------------------------------------------------------------------------- |
-| `extracted_name` | Data                    | Normalized name from Interac / parsed description (primary match key)                 |
-| `pattern`        | Data                    | Optional regex or substring; auto-set to escaped `extracted_name` for substring match |
-| `party_type`     | Select                  | Customer / Supplier                                                                   |
-| `party`          | Dynamic Link            | Resolved party                                                                        |
-| `direction`      | Select                  | Deposit / Withdrawal / Both                                                           |
-| `priority`       | Int                     | Base match order; effective priority = `priority` + learned boost from `hit_count`    |
-| `source`         | Select                  | Auto / Manual                                                                         |
-| `learned_from`   | Link → Bank Transaction | Last reconciliation that created or reinforced this row                               |
-| `hit_count`      | Int                     | Times this mapping was confirmed; used for ranking                                    |
-| `last_used`      | Datetime                | Last successful Confirm using this alias                                              |
-| `enabled`        | Check                   | Disable mistaken auto-learned rows without deleting                                   |
-| `conflict_notes` | Small Text              | Set when a new Confirm disagrees with an existing mapping                             |
+| Field               | Purpose                                                                                  |
+| ------------------- | ---------------------------------------------------------------------------------------- |
+| `rule_name`         | Human-readable label (e.g. `Interac: MARIE-CLAIRE TREMBLAY → Luc Tremblay`)              |
+| `description_rules` | Child table: `Contains` / `Starts With` / `Ends With` / `Regex` + value                |
+| `transaction_type`  | Deposit / Withdrawal / Any — disambiguates dual-role parents                             |
+| `party_type`        | Customer / Supplier                                                                      |
+| `party`             | Resolved party                                                                           |
+| `priority`          | Match order; higher values evaluated first                                               |
+| `company`           | Troop company                                                                            |
+| `classify_as`       | `Payment Entry` for fee payments and reimbursements                                      |
 
 
-One person may have **two rows** (Customer for scout fees, Supplier for reimbursements). Matching uses `direction` together with bank line deposit/withdrawal.
+One person may have **two rules** (Customer for scout fees, Supplier for reimbursements). Matching uses `transaction_type` together with bank line deposit/withdrawal. Rules are managed in Banking → Settings → Rules and auto-created by `rule_learner` on Confirm.
 
-Example: alias `MARIE-CLAIRE TREMBLAY` + Deposit → Customer *Luc Tremblay*; same name + Withdrawal → Supplier *Marie-Claire Tremblay*.
+Example: rule matching `MARIE-CLAIRE TREMBLAY` + Deposit → Customer *Luc Tremblay*; separate rule + Withdrawal → Supplier *Marie-Claire Tremblay*.
 
 ### 8.3 Hooks and integration
 
@@ -762,12 +763,18 @@ No overrides of ERPNext's stock Bank Reconciliation Tool or its whitelisted meth
 # (leave available elsewhere in ERPNext for admins)
 
 doc_events = {
-    # Prefer explicit orchestration in reconcile_bank_transaction() over
-    # Payment Entry on_submit hooks — keeps bank-link logic in one place.
+    "Payment Entry": {
+        "before_validate": (
+            "scout_manager.scout_manager.accounting.payment_entry"
+            ".inherit_dimensions_from_references"
+        ),
+    },
 }
 ```
 
-All reconciliation behavior is invoked from the custom page via `scout_manager.bank_reconciliation` APIs. Standard DocTypes (`Bank Transaction`, `Payment Entry`, invoices) are used as-is.
+Dimension inheritance runs on every Payment Entry save path (Banking Record Payment, desk form, custom reconcile orchestration). Bank-link and reconcile logic stays in `reconcile_bank_transaction()` — not in `on_submit` hooks.
+
+All custom reconciliation behavior is invoked via `scout_manager.bank_reconciliation` APIs. Standard DocTypes (`Bank Transaction`, `Payment Entry`, `Bank Transaction Rule`, invoices) are used as-is.
 
 ### 8.4 Scout Bank Reconciliation page (client)
 
@@ -779,8 +786,8 @@ Single-page app within Frappe Page framework:
   - Suggested open invoices (Sales + Purchase) with editable amounts.
   - Confidence badge (High / Review needed).
   - Multi-payment preview when Confirm would create more than one Payment Entry.
-  - Optional toast when Confirm saves or reinforces an alias (§6.7).
-  - Manual **Add alias** for pre-emptive setup or conflict fixes; routine Interac lines learn on Confirm.
+  - Optional toast when Confirm saves or reinforces a Bank Transaction Rule (§6.7).
+  - Manual **Add rule** in Banking → Settings for pre-emptive setup or conflict fixes; routine Interac lines learn on Confirm.
 - **Confirm** → `reconcile_bank_transaction()`; line leaves unreconciled list on success.
 - **Other** action for non-invoice lines (fees, transfers) — exception path on same page.
 
@@ -909,12 +916,12 @@ Migrate the two working customizations from site DB into `scout_manager` **befor
 
 ### Phase 3 — Allocation-centric reconcile
 
-- [ ] Interac description templates + Party Alias matching (deposit and withdrawal)
+- [ ] Interac description templates + Bank Transaction Rule matching (deposit and withdrawal)
 - [ ] `allocation_suggester` — amount-based pre-selection on short open-invoice list
 - [ ] Allocation panel + Confirm on Scout page
 - [ ] `reconcile_bank_transaction()` — multi-payment split by party group
-- [ ] `alias_learner` — auto-create / reinforce Party Alias on successful Confirm
-- [ ] Dimension inheritance (project, cost center from invoices) in Payment Entry builder
+- [ ] `rule_learner` — auto-create / reinforce Bank Transaction Rule on successful Confirm
+- [x] Dimension inheritance (project, cost center from invoices) — `Payment Entry` `before_validate` hook
 - [ ] Auto-link all Payment Entries and reconcile Bank Transaction
 - [ ] Review panel + non-invoice exception path on same page
 
@@ -922,7 +929,7 @@ Migrate the two working customizations from site DB into `scout_manager` **befor
 
 ### Phase 4 — Polish and learning
 
-- [ ] Party Alias management UI (Auto vs Manual, conflicts, disable mistaken rows)
+- [ ] Bank Transaction Rule review workflow (learned vs manual, conflicts, disable mistaken rules)
 - [ ] Bulk reconcile (select multiple similar Interac deposits)
 - [ ] Reconciliation dashboard (unreconciled count, oldest unreconciled date)
 - [ ] Additional banks: drop in compatible community import configs (no parser code changes)
@@ -938,8 +945,8 @@ Migrate the two working customizations from site DB into `scout_manager` **befor
 | --- | --------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------- |
 | Q1  | ~~Desjardins export format~~ → **Resolved:** Relevés → CSV Accentué (14 cols, no headers); validated in production via Firefly III            | —                                         |
 | Q1b | Redacted CSV Accentué sample committed as regression fixture?                                                                                 | Parser tests, balance/metadata edge cases |
-| Q2  | ~~Auto-allocation strategy~~ → **Resolved:** priority order in §6.2 (exact amount → customer sum → alias + partial → manual)                  | Phase 3 UX                                |
-| Q3  | Partial payments — common? Auto-suggest oldest-first up to bank amount when alias matches?                                                    | Allocation suggester                      |
+| Q2  | ~~Auto-allocation strategy~~ → **Resolved:** priority order in §6.2 (exact amount → customer sum → rule + partial → manual)                   | Phase 3 UX                                |
+| Q3  | Partial payments — common? Auto-suggest oldest-first up to bank amount when rule matches?                                                       | Allocation suggester                      |
 | Q4  | Are supplier payments always against Purchase Invoices, or sometimes Journal Entries?                                                         | Exception path for withdrawals            |
 | Q5  | ~~Custom page vs extend stock Bank Reconciliation Tool?~~ → **Resolved:** dedicated `scout_bank_reconciliation` Page; do not patch stock tool | —                                         |
 | Q6  | Should skipped duplicates be visible in ERPNext Error Log or a custom import log only?                                                        | Ops visibility                            |
@@ -958,8 +965,8 @@ Migrate the two working customizations from site DB into `scout_manager` **befor
 | ------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------- |
 | Bank changes CSV format                                            | Sync updated config from upstream import-configurations repo; sample-file regression tests              |
 | Wrong invoice auto-selected                                        | Treasurer always confirms allocation; amount must balance before Confirm                                |
-| Wrong alias learned from bad Confirm                               | Do not overwrite on conflict; `enabled` flag + Party Alias review UI; reinforce only on repeat confirms |
-| Dual-role parent matched to wrong party_type                       | Match alias with direction; show both roles in review if ambiguous                                      |
+| Wrong rule learned from bad Confirm                                | Do not overwrite on conflict; disable rule in Banking → Rules; reinforce only on repeat confirms        |
+| Dual-role parent matched to wrong party_type                       | Match rule with `transaction_type`; show both roles in review if ambiguous                             |
 | Multi-customer deposit split incorrectly                           | Show grouped preview (N Payment Entries) before Confirm                                                 |
 | ERPNext upgrade breaks Scout UI                                    | Reconciliation UI entirely in `scout_manager` page; no core client-script overrides                     |
 | Duplicate hash collision (same day, same amount, same description) | Include balance or sequence in hash; flag for review                                                    |
@@ -976,9 +983,9 @@ Observed in production Bank Transactions:
 
 | Description                                    | Direction  | Suggested filter   | Notes                             |
 | ---------------------------------------------- | ---------- | ------------------ | --------------------------------- |
-| `Virement Interac de: MARIE-CLAIRE TREMBLAY`   | Deposit    | Customer via alias | Parent name ≠ scout customer name |
-| `Dépôt - Virement Interac reçu de Jean Dupont` | Deposit    | Customer via alias | Template variant                  |
-| `Virement Interac à: NICOLAS BOIVIN`           | Withdrawal | Supplier via alias | Reimbursement to parent           |
+| `Virement Interac de: MARIE-CLAIRE TREMBLAY`   | Deposit    | Customer via rule  | Parent name ≠ scout customer name |
+| `Dépôt - Virement Interac reçu de Jean Dupont` | Deposit    | Customer via rule  | Template variant                  |
+| `Virement Interac à: NICOLAS BOIVIN`           | Withdrawal | Supplier via rule  | Reimbursement to parent           |
 | `Paiement internet à Nicolas Boivin/cime`      | Withdrawal | Supplier           | Non-Interac supplier payment      |
 | `Frais bancaires`                              | Withdrawal | —                  | Journal Entry / internal          |
 | `Télé-paiement ...`                            | Withdrawal | Supplier           | Parse payee                       |
@@ -994,8 +1001,8 @@ Collect **real CSV samples** and register each distinct Desjardins boilerplate a
 
 Parent *Marie-Claire Tremblay*:
 
-- Pays son *Luc Tremblay* registration → Deposit, alias → Customer *Luc Tremblay*
-- Receives camp grocery reimbursement → Withdrawal, alias → Supplier *Marie-Claire Tremblay*
+- Pays son *Luc Tremblay* registration → Deposit, rule → Customer *Luc Tremblay*
+- Receives camp grocery reimbursement → Withdrawal, rule → Supplier *Marie-Claire Tremblay*
 
 Same extracted name, different direction → different invoice pool and Payment Entry type.
 

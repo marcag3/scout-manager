@@ -161,13 +161,11 @@ after_migrate = [
 # ---------------
 # Hook on document methods and events
 
-# doc_events = {
-# 	"*": {
-# 		"on_update": "method",
-# 		"on_cancel": "method",
-# 		"on_trash": "method"
-# 	}
-# }
+doc_events = {
+	"Payment Entry": {
+		"before_validate": "scout_manager.scout_manager.accounting.payment_entry.inherit_dimensions_from_references",
+	}
+}
 
 # Scheduled Tasks
 # ---------------
