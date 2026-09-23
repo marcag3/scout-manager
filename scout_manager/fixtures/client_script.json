@@ -1,0 +1,38 @@
+[
+ {
+  "doctype": "Client Script",
+  "name": "Calcul age",
+  "dt": "Customer",
+  "view": "Form",
+  "enabled": 1,
+  "module": "Scout Manager",
+  "script": "frappe.ui.form.on('Customer', {\n\trefresh(frm) {\n\t\tif (!frm.doc.custom_date_de_naissance) {\n\t\t\treturn;\n\t\t}\n\t\tconst age = moment().diff(frm.doc.custom_date_de_naissance, 'years');\n\t\tfrm.set_value('custom_age', age, false, true);\n\t},\n})"
+ },
+ {
+  "doctype": "Client Script",
+  "name": "email payment entry",
+  "dt": "Payment Entry",
+  "view": "Form",
+  "enabled": 1,
+  "module": "Scout Manager",
+  "script": "frappe.ui.form.on('Payment Entry', {\n\tparty(frm) {\n\t\tif (frm.doc.party_type !== 'Customer' || !frm.doc.party) {\n\t\t\treturn;\n\t\t}\n\n\t\tfrappe.call({\n\t\t\tmethod: 'frappe.client.get_value',\n\t\t\targs: {\n\t\t\t\tdoctype: 'Customer',\n\t\t\t\tfieldname: 'customer_primary_contact',\n\t\t\t\tfilters: { name: frm.doc.party },\n\t\t\t},\n\t\t\tcallback(r) {\n\t\t\t\tif (r.message?.customer_primary_contact) {\n\t\t\t\t\tfrm.set_value('contact_person', r.message.customer_primary_contact);\n\t\t\t\t}\n\t\t\t},\n\t\t});\n\t},\n});"
+ },
+ {
+  "doctype": "Client Script",
+  "name": "expanse claim item cost center and project",
+  "dt": "Expense Claim",
+  "view": "Form",
+  "enabled": 1,
+  "module": "Scout Manager",
+  "script": "frappe.ui.form.on('Expense Claim', {\n\tcost_center(frm) {\n\t\t(frm.doc.expenses || []).forEach((expense) => {\n\t\t\texpense.cost_center = frm.doc.cost_center;\n\t\t});\n\t\tfrm.refresh_field('expenses');\n\t},\n\tproject(frm) {\n\t\t(frm.doc.expenses || []).forEach((expense) => {\n\t\t\texpense.project = frm.doc.project;\n\t\t});\n\t\tfrm.refresh_field('expenses');\n\t},\n});\n\nfrappe.ui.form.on('Expense Claim Detail', {\n\texpenses_add(frm) {\n\t\tconst row = frm.doc.expenses[frm.doc.expenses.length - 1];\n\t\trow.cost_center = frm.doc.cost_center;\n\t\trow.project = frm.doc.project;\n\t\tfrm.refresh_field('expenses');\n\t},\n});"
+ },
+ {
+  "doctype": "Client Script",
+  "name": "set cost center",
+  "dt": "Sales Invoice",
+  "view": "Form",
+  "enabled": 1,
+  "module": "Scout Manager",
+  "script": "frappe.ui.form.on('Sales Invoice', {\n\tcustomer(frm) {\n\t\tif (!frm.doc.customer) {\n\t\t\treturn;\n\t\t}\n\n\t\tfrappe.call({\n\t\t\tmethod: 'frappe.client.get_value',\n\t\t\targs: {\n\t\t\t\tdoctype: 'Customer',\n\t\t\t\tfilters: { name: frm.doc.customer },\n\t\t\t\tfieldname: 'customer_group',\n\t\t\t},\n\t\t\tcallback(r) {\n\t\t\t\tconst customer_group = r.message?.customer_group;\n\t\t\t\tif (!customer_group) {\n\t\t\t\t\treturn;\n\t\t\t\t}\n\n\t\t\t\tfrappe.call({\n\t\t\t\t\tmethod: 'frappe.client.get_value',\n\t\t\t\t\targs: {\n\t\t\t\t\t\tdoctype: 'Customer Group',\n\t\t\t\t\t\tfilters: { name: customer_group },\n\t\t\t\t\t\tfieldname: 'custom_centre_de_cout',\n\t\t\t\t\t},\n\t\t\t\t\tcallback(res) {\n\t\t\t\t\t\tconst cost_center = res.message?.custom_centre_de_cout;\n\t\t\t\t\t\tif (cost_center && frm.doc.cost_center !== cost_center) {\n\t\t\t\t\t\t\tfrm.set_value('cost_center', cost_center);\n\t\t\t\t\t\t}\n\t\t\t\t\t},\n\t\t\t\t});\n\t\t\t},\n\t\t});\n\t},\n\tcost_center(frm) {\n\t\t(frm.doc.items || []).forEach((item) => {\n\t\t\titem.cost_center = frm.doc.cost_center;\n\t\t});\n\t\tfrm.refresh_field('items');\n\t},\n});"
+ }
+]

@@ -1,0 +1,46 @@
+{
+ "add_total_row": 1,
+ "add_translate_data": 0,
+ "disabled": 0,
+ "docstatus": 0,
+ "doctype": "Report",
+ "is_standard": "Yes",
+ "module": "Scout Manager",
+ "name": "Argent disponible par unité",
+ "report_name": "Argent disponible par unité",
+ "report_type": "Query Report",
+ "ref_doctype": "GL Entry",
+ "letter_head": "188",
+ "query": "SELECT\n\tcc.name AS cost_center,\n\tcc.cost_center_name AS cost_center_name,\n\tIFNULL(gl.banque, 0) + IFNULL(gl.realloc, 0) AS banque,\n\tIFNULL(gl.caisse, 0) AS caisse,\n\tIFNULL(gl.ar, 0) AS ar,\n\tIFNULL(gl.passif, 0) AS passif,\n\tIFNULL(gl.banque, 0) + IFNULL(gl.realloc, 0) + IFNULL(gl.caisse, 0) - IFNULL(gl.passif, 0) AS disponible,\n\tIFNULL(gl.banque, 0) + IFNULL(gl.realloc, 0) + IFNULL(gl.caisse, 0) - IFNULL(gl.passif, 0) + IFNULL(gl.ar, 0) AS disponible_ar\nFROM `tabCost Center` cc\nLEFT JOIN (\n\tSELECT\n\t\tgle.cost_center AS cost_center,\n\t\tSUM(CASE WHEN acc.account_number = '1011' THEN gle.debit - gle.credit ELSE 0 END) AS banque,\n\t\tSUM(CASE WHEN acc.account_number = '1012' THEN gle.debit - gle.credit ELSE 0 END) AS caisse,\n\t\tSUM(CASE WHEN acc.account_number = '1030' THEN gle.debit - gle.credit ELSE 0 END) AS realloc,\n\t\tSUM(CASE WHEN acc.account_number = '1021' THEN gle.debit - gle.credit ELSE 0 END) AS ar,\n\t\tSUM(CASE WHEN acc.account_number IN ('2010', '100301464RT0001', '1006141893TQ0001') THEN GREATEST(gle.credit - gle.debit, 0) ELSE 0 END) AS passif\n\tFROM `tabGL Entry` gle\n\tINNER JOIN `tabAccount` acc ON acc.name = gle.account\n\tWHERE gle.company = %(company)s\n\t\tAND gle.posting_date <= %(to_date)s\n\t\tAND IFNULL(gle.is_cancelled, 0) = 0\n\t\tAND IFNULL(gle.cost_center, '') != ''\n\t\tAND acc.account_number IN ('1011', '1012', '1030', '1021', '2010', '100301464RT0001', '1006141893TQ0001')\n\tGROUP BY gle.cost_center\n) gl ON gl.cost_center = cc.name\nWHERE cc.company = %(company)s\n\tAND cc.is_group = 0\n\tAND cc.disabled = 0\nORDER BY FIELD(cc.cost_center_name, 'Groupe', 'Colonie', 'Louvette', 'Meute', 'Troupe', 'Clan'), cc.cost_center_name",
+ "filters": [
+  {
+   "fieldname": "company",
+   "label": "Compagnie",
+   "fieldtype": "Link",
+   "options": "Company",
+   "mandatory": 1,
+   "wildcard_filter": 0,
+   "default": null
+  },
+  {
+   "fieldname": "to_date",
+   "label": "Au",
+   "fieldtype": "Date",
+   "options": null,
+   "mandatory": 1,
+   "wildcard_filter": 0,
+   "default": null
+  }
+ ],
+ "roles": [
+  {
+   "role": "Accounts Manager"
+  },
+  {
+   "role": "Accounts User"
+  },
+  {
+   "role": "Auditor"
+  }
+ ]
+}

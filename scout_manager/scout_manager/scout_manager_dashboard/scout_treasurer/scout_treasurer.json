@@ -1,0 +1,70 @@
+{
+ "cards": [
+  {
+   "card": "Factures clients en retard"
+  },
+  {
+   "card": "Factures fournisseurs \u00e0 payer"
+  },
+  {
+   "card": "Transactions bancaires \u00e0 r\u00e9concilier"
+  },
+  {
+   "card": "Solde banque et caisse"
+  },
+  {
+   "card": "Total factur\u00e9"
+  },
+  {
+   "card": "Total des factures fournisseurs"
+  },
+  {
+   "card": "Total encaiss\u00e9"
+  },
+  {
+   "card": "Total d\u00e9caiss\u00e9"
+  }
+ ],
+ "charts": [
+  {
+   "chart": "Argent disponible par unit\u00e9",
+   "width": "Full"
+  },
+  {
+   "chart": "Flux de tr\u00e9sorerie (12 mois)",
+   "width": "Full"
+  },
+  {
+   "chart": "Budget Variance",
+   "width": "Full"
+  },
+  {
+   "chart": "Rentabilit\u00e9 par projet",
+   "width": "Full"
+  },
+  {
+   "chart": "Pertes et profits (mensuel)",
+   "width": "Full"
+  },
+  {
+   "chart": "Accounts Receivable Ageing",
+   "width": "Half"
+  },
+  {
+   "chart": "Bank Balance",
+   "width": "Half"
+  }
+ ],
+ "creation": "2026-09-22 22:20:00",
+ "dashboard_name": "Scout Treasurer",
+ "docstatus": 0,
+ "doctype": "Dashboard",
+ "idx": 0,
+ "is_default": 0,
+ "is_standard": 1,
+ "modified": "2026-09-22 22:45:00",
+ "modified_by": "Administrator",
+ "module": "Scout Manager",
+ "name": "Scout Treasurer",
+ "owner": "Administrator"
+}

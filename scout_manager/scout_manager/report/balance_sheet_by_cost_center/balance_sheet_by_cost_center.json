@@ -1,0 +1,46 @@
+{
+ "add_total_row": 1,
+ "add_translate_data": 0,
+ "disabled": 0,
+ "docstatus": 0,
+ "doctype": "Report",
+ "is_standard": "Yes",
+ "module": "Scout Manager",
+ "name": "Balance sheet by cost center",
+ "report_name": "Balance sheet by cost center",
+ "report_type": "Query Report",
+ "ref_doctype": "GL Entry",
+ "letter_head": "188",
+ "query": "SELECT\n\tgle.account AS account,\n\tSUM(CASE WHEN gle.cost_center = 'Clan - 188' THEN gle.debit - gle.credit ELSE 0 END) AS clan,\n\tSUM(CASE WHEN gle.cost_center = 'Colonie - 188' THEN gle.debit - gle.credit ELSE 0 END) AS colonie,\n\tSUM(CASE WHEN gle.cost_center = 'Groupe - 188' THEN gle.debit - gle.credit ELSE 0 END) AS groupe,\n\tSUM(CASE WHEN gle.cost_center = 'Louvette - 188' THEN gle.debit - gle.credit ELSE 0 END) AS louvette,\n\tSUM(CASE WHEN gle.cost_center = 'Meute - 188' THEN gle.debit - gle.credit ELSE 0 END) AS meute,\n\tSUM(CASE WHEN gle.cost_center = 'Troupe - 188' THEN gle.debit - gle.credit ELSE 0 END) AS troupe,\n\tSUM(CASE WHEN IFNULL(gle.cost_center, '') = '' OR gle.cost_center NOT IN ('Clan - 188', 'Colonie - 188', 'Groupe - 188', 'Louvette - 188', 'Meute - 188', 'Troupe - 188') THEN gle.debit - gle.credit ELSE 0 END) AS autres,\n\tSUM(gle.debit - gle.credit) AS total\nFROM\n\t`tabGL Entry` gle\n\tINNER JOIN `tabAccount` acc ON acc.name = gle.account\nWHERE\n\tgle.company = %(company)s\n\tAND gle.is_cancelled = 0\n\tAND gle.posting_date <= %(to_date)s\n\tAND acc.root_type IN ('Asset', 'Liability', 'Equity')\n\tAND acc.is_group = 0\nGROUP BY\n\tgle.account\nHAVING\n\tABS(SUM(gle.debit - gle.credit)) > 0.005\nORDER BY\n\tacc.root_type,\n\tgle.account",
+ "filters": [
+  {
+   "fieldname": "company",
+   "label": "Compagnie",
+   "fieldtype": "Link",
+   "options": "Company",
+   "mandatory": 1,
+   "wildcard_filter": 0,
+   "default": null
+  },
+  {
+   "fieldname": "to_date",
+   "label": "En date du",
+   "fieldtype": "Date",
+   "options": null,
+   "mandatory": 1,
+   "wildcard_filter": 0,
+   "default": null
+  }
+ ],
+ "roles": [
+  {
+   "role": "Accounts Manager"
+  },
+  {
+   "role": "Accounts User"
+  },
+  {
+   "role": "Auditor"
+  }
+ ]
+}

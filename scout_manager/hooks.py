@@ -5,6 +5,23 @@ app_description = "Custom ERPNext app for scout troop management"
 app_email = "admin@example.com"
 app_license = "mit"
 
+fixtures = [
+	{
+		"dt": "Custom HTML Block",
+		"filters": [["name", "=", "Argent disponible"]],
+	},
+	{
+		"dt": "Client Script",
+		"filters": [["module", "=", "Scout Manager"], ["enabled", "=", 1]],
+	},
+]
+
+after_migrate = [
+	"scout_manager.scout_manager.utils.widget.cleanup_retired_client_scripts",
+	"scout_manager.scout_manager.utils.widget.sync_argent_disponible_block",
+	"scout_manager.scout_manager.setup.treasurer.setup_scout_treasurer",
+]
+
 # Apps
 # ------------------
 

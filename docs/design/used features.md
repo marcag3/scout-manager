@@ -38,6 +38,12 @@ Grouped for a future **Scout Manager** treasurer workspace. Each `##` section ma
 
 ## Banking
 
+- `/banking` — ERPNext v16 Banking module (match & reconcile SPA)
+- `/banking/statement-importer` — Bank Statement Importer (v16)
+- bank-reconciliation-tool
+- bank-clearance
+- process-payment-reconciliation
+- query-report/Bank Reconciliation Statement
 - bank-statement-import
 - bank-transaction
 
