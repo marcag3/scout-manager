@@ -12,19 +12,19 @@
  "ref_doctype": "GL Entry",
  "filters": [
   {
-   "fieldname": "fiscal_year",
-   "label": "Année financière",
+   "fieldname": "company",
+   "label": "Compagnie",
    "fieldtype": "Link",
-   "options": "Fiscal Year",
+   "options": "Company",
    "mandatory": 1,
    "wildcard_filter": 0,
    "default": null
   },
   {
-   "fieldname": "company",
-   "label": "Compagnie",
+   "fieldname": "fiscal_year",
+   "label": "Année financière",
    "fieldtype": "Link",
-   "options": "Company",
+   "options": "Fiscal Year",
    "mandatory": 1,
    "wildcard_filter": 0,
    "default": null
