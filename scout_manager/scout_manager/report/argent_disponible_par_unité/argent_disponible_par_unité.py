@@ -1,10 +1,10 @@
+import erpnext
 import frappe
 from frappe import _
 
 from scout_manager.scout_manager.config.troop import (
 	ACCOUNT_NUMBERS,
 	ARGENT_DISPONIBLE_ACCOUNTS,
-	DEFAULT_COMPANY,
 	PASSIF_ACCOUNT_NUMBERS,
 )
 from scout_manager.scout_manager.utils.cost_centers import get_unit_cost_centers
@@ -14,7 +14,7 @@ AMOUNT_FIELDS = ("banque", "caisse", "ar", "passif", "disponible", "disponible_a
 
 def execute(filters=None):
 	filters = filters or {}
-	company = filters.get("company") or DEFAULT_COMPANY
+	company = filters.get("company") or erpnext.get_default_company()
 	to_date = filters.get("to_date")
 
 	units = get_unit_cost_centers(company)

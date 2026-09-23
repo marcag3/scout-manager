@@ -1,9 +1,9 @@
+import erpnext
 import frappe
 from frappe.utils import add_months, formatdate, get_first_day, get_last_day, getdate, today
 from frappe.utils.dashboard import cache_source
 
 from scout_manager.scout_manager.api.dashboard import get_cash_accounts
-from scout_manager.scout_manager.config.troop import DEFAULT_COMPANY
 
 MONTHS = 12
 
@@ -26,7 +26,7 @@ def get(
 	Amounts are netted per voucher so transfers between bank and petty cash cancel out.
 	"""
 	filters = frappe.parse_json(filters) or {}
-	company = filters.get("company") or DEFAULT_COMPANY
+	company = filters.get("company") or erpnext.get_default_company()
 
 	end = get_last_day(today())
 	start = get_first_day(add_months(end, -(MONTHS - 1)))

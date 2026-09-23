@@ -1,3 +1,4 @@
+import erpnext
 import frappe
 
 from scout_manager.scout_manager.config.names import COST_CENTER_DISPLAY_ORDER_FIELD
@@ -37,9 +38,7 @@ def get_unit_cost_center_names(company):
 
 def seed_cost_center_display_order(company=None):
 	"""Set custom_ordre_affichage on unit cost centers when still unset."""
-	from scout_manager.scout_manager.config.troop import DEFAULT_COMPANY
-
-	company = company or DEFAULT_COMPANY
+	company = company or erpnext.get_default_company()
 	for cost_center_name, order in _SEED_DISPLAY_ORDER_BY_NAME.items():
 		name = frappe.db.get_value(
 			"Cost Center",

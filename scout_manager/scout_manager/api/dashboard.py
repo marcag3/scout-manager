@@ -1,7 +1,6 @@
+import erpnext
 import frappe
 from frappe.utils import flt, today
-
-from scout_manager.scout_manager.config.troop import DEFAULT_COMPANY
 
 CASH_ACCOUNT_TYPES = ("Bank", "Cash")
 
@@ -20,7 +19,7 @@ def get_cash_balance(filters=None):
 	filters = frappe.parse_json(filters) or {}
 	if isinstance(filters, list):
 		filters = {f[1]: f[3] for f in filters if len(f) > 3}
-	company = filters.get("company") or DEFAULT_COMPANY
+	company = filters.get("company") or erpnext.get_default_company()
 
 	accounts = get_cash_accounts(company)
 	balance = 0

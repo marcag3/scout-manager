@@ -1,9 +1,9 @@
+import erpnext
 import frappe
 from frappe.desk.query_report import run
 from frappe.utils import getdate, today
 
 from scout_manager.scout_manager.config.names import REPORT_ARGENT_DISPONIBLE
-from scout_manager.scout_manager.config.troop import DEFAULT_COMPANY
 from scout_manager.scout_manager.report.argent_disponible_par_unité.argent_disponible_par_unité import (
 	AMOUNT_FIELDS,
 )
@@ -13,7 +13,7 @@ from scout_manager.scout_manager.utils.cost_centers import get_unit_cost_centers
 @frappe.whitelist()
 def get_argent_disponible_by_unit(company=None, to_date=None):
 	"""Return disponible par unité rows for the workspace widget."""
-	company = company or DEFAULT_COMPANY
+	company = company or erpnext.get_default_company()
 	to_date = getdate(to_date or today())
 
 	data = run(REPORT_ARGENT_DISPONIBLE, filters={"company": company, "to_date": to_date})

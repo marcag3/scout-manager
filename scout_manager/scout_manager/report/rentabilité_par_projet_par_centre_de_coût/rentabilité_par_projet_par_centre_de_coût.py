@@ -1,7 +1,6 @@
+import erpnext
 import frappe
 from frappe import _
-
-from scout_manager.scout_manager.config.troop import DEFAULT_COMPANY
 from scout_manager.scout_manager.utils.cost_centers import get_unit_cost_centers
 from scout_manager.scout_manager.utils.report_columns import build_pivot_columns, build_pivot_selects
 
@@ -13,7 +12,7 @@ VALUE_EXPR = (
 
 def execute(filters=None):
 	filters = filters or {}
-	company = filters.get("company") or DEFAULT_COMPANY
+	company = filters.get("company") or erpnext.get_default_company()
 	fiscal_year = filters.get("fiscal_year")
 
 	units = get_unit_cost_centers(company)

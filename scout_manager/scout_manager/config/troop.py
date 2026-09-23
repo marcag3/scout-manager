@@ -1,7 +1,5 @@
 """Troop-wide defaults shared by reports, widgets, and APIs."""
 
-DEFAULT_COMPANY = "188e Montréal-Nord"
-
 ACCOUNT_NUMBERS = {
 	"banque": "1011",
 	"caisse": "1012",

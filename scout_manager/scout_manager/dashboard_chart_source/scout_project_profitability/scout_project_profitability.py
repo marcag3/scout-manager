@@ -1,3 +1,4 @@
+import erpnext
 import frappe
 from erpnext.accounts.utils import get_fiscal_year
 from frappe.desk.query_report import run
@@ -5,7 +6,6 @@ from frappe.utils import today
 from frappe.utils.dashboard import cache_source
 
 from scout_manager.scout_manager.config.names import REPORT_RENTABILITE_CC
-from scout_manager.scout_manager.config.troop import DEFAULT_COMPANY
 # Projects with the largest profit or deficit; more bars make the labels unreadable.
 MAX_PROJECTS = 10
 
@@ -24,7 +24,7 @@ def get(
 	heatmap_year=None,
 ):
 	filters = frappe.parse_json(filters) or {}
-	company = filters.get("company") or DEFAULT_COMPANY
+	company = filters.get("company") or erpnext.get_default_company()
 	fiscal_year = filters.get("fiscal_year") or get_fiscal_year(today(), company=company)[0]
 
 	data = run(
