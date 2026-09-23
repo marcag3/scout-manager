@@ -88,7 +88,11 @@ after_migrate = [
 # page_js = {"page" : "public/js/file.js"}
 
 # include js in doctype views
-# doctype_js = {"doctype" : "public/js/doctype.js"}
+doctype_js = {
+	"Customer": "public/js/customer_age.js",
+	"Sales Invoice": "public/js/invoice_cost_center.js",
+	"Purchase Invoice": "public/js/invoice_cost_center.js",
+}
 # doctype_list_js = {"doctype" : "public/js/doctype_list.js"}
 # doctype_tree_js = {"doctype" : "public/js/doctype_tree.js"}
 # doctype_calendar_js = {"doctype" : "public/js/doctype_calendar.js"}
@@ -194,10 +198,16 @@ doc_events = {
 		"before_validate": "scout_manager.scout_manager.accounting.payment_entry.inherit_dimensions_from_references",
 	},
 	"Sales Invoice": {
-		"before_validate": "scout_manager.scout_manager.accounting.invoice_dimensions.sync_header_dimensions_to_items",
+		"before_validate": [
+			"scout_manager.scout_manager.accounting.invoice_dimensions.apply_party_cost_center",
+			"scout_manager.scout_manager.accounting.invoice_dimensions.sync_header_dimensions_to_items",
+		],
 	},
 	"Purchase Invoice": {
-		"before_validate": "scout_manager.scout_manager.accounting.invoice_dimensions.sync_header_dimensions_to_items",
+		"before_validate": [
+			"scout_manager.scout_manager.accounting.invoice_dimensions.apply_party_cost_center",
+			"scout_manager.scout_manager.accounting.invoice_dimensions.sync_header_dimensions_to_items",
+		],
 	},
 }
 

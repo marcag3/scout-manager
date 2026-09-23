@@ -65,7 +65,8 @@ def cleanup_retired_custom_fields():
 
 	if removed:
 		frappe.db.commit()
-		frappe.clear_cache(doctype="Customer Group")
+		for doctype in ("Customer", "Customer Group", "Contact", "Supplier Group"):
+			frappe.clear_cache(doctype=doctype)
 		frappe.logger("scout_manager").info("Removed retired custom fields: %s", ", ".join(removed))
 
 	return removed
