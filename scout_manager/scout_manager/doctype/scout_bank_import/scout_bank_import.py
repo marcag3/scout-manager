@@ -63,6 +63,7 @@ class ScoutBankImport(Document):
 
 	@frappe.whitelist()
 	def preview_import(self):
+		self._validate_permissions()
 		parsed = self._parse_file()
 		suggested_bank_account = suggest_bank_account(
 			parsed.account_number,
@@ -85,6 +86,7 @@ class ScoutBankImport(Document):
 
 	@frappe.whitelist()
 	def import_transactions(self):
+		self._validate_permissions()
 		if self.status not in ("Draft", "Partial"):
 			frappe.throw(_("Only draft imports can be processed"))
 
@@ -195,17 +197,3 @@ class ScoutBankImport(Document):
 		if not self.import_config:
 			frappe.throw(_("Select an import config"))
 		return ImportConfig.from_doc(self.import_config)
-
-
-@frappe.whitelist()
-def preview_bank_import(import_file, import_config=None, bank_account=None):
-	"""Parse an uploaded file without saving the Scout Bank Import document."""
-	doc = frappe.get_doc(
-		{
-			"doctype": "Scout Bank Import",
-			"import_file": import_file,
-			"import_config": resolve_import_config_name(import_config),
-			"bank_account": bank_account,
-		}
-	)
-	return doc.preview_import()

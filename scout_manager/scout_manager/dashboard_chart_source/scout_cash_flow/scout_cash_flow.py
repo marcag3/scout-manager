@@ -4,6 +4,7 @@ from frappe.utils import add_months, formatdate, get_first_day, get_last_day, ge
 from frappe.utils.dashboard import cache_source
 
 from scout_manager.scout_manager.api.dashboard import get_cash_accounts
+from scout_manager.scout_manager.utils.permissions import require_gl_entry_read
 
 MONTHS = 12
 
@@ -25,6 +26,7 @@ def get(
 
 	Amounts are netted per voucher so transfers between bank and petty cash cancel out.
 	"""
+	require_gl_entry_read()
 	filters = frappe.parse_json(filters) or {}
 	company = filters.get("company") or erpnext.get_default_company()
 

@@ -1,12 +1,16 @@
 import frappe
 from frappe import _
+from frappe.rate_limiter import rate_limit
 from frappe.utils import get_first_day, get_last_day, getdate, nowdate, now_datetime
 
 from scout_manager.scout_manager.accounting.cost_center import get_cost_center_for_group
 from scout_manager.scout_manager.accounting.invoice_dimensions import sync_header_dimensions_to_items
+from scout_manager.scout_manager.utils.permissions import require_cotisation_role
 
 
+@rate_limit(key="create_cotisation_invoices", limit=5, seconds=24 * 60 * 60)
 def create_cotisation_invoices(customer_group_name):
+	require_cotisation_role()
 	if not customer_group_name:
 		frappe.throw(_("Customer Group Name is required."))
 

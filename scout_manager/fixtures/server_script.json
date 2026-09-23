@@ -7,7 +7,7 @@
   "docstatus": 0,
   "doctype": "Server Script",
   "doctype_event": "Before Insert",
-  "enable_rate_limit": 0,
+  "enable_rate_limit": 1,
   "event_frequency": "All",
   "modified": "2024-10-20 23:43:01.712891",
   "module": "Scout Manager",
@@ -36,24 +36,5 @@
   "reference_doctype": "Customer",
   "script": "# Séparer le nom du client pour correspondre potentiellement au prénom et au nom du contact\nname_parts = doc.customer_name.split(' ', 1)\n\nif len(name_parts) == 2:\n    first_name = name_parts[0]\n    last_name = name_parts[1]\nelse:\n    first_name = name_parts[0]\n    last_name = ''\n\n# Chercher un contact avec le prénom et le nom séparés\ncontact = frappe.get_all('Contact', \n                         filters={'first_name': first_name, 'last_name': last_name}, \n                         fields=['name'])\n\n# Si aucun contact n'est trouvé, chercher un contact avec le nom complet dans le champ 'first_name'\nif not contact:\n    contact = frappe.get_all('Contact', \n                             filters={'first_name': doc.customer_name}, \n                             fields=['name'])\n                             \n# Si aucun contact n'est trouvé, chercher un contact avec le nom complet dans le champ 'last_name'\nif not contact:\n    contact = frappe.get_all('Contact', \n                             filters={'last_name': doc.customer_name}, \n                             fields=['name'])\n\nif contact:\n    # Lier le contact trouvé au client\n    frappe.get_doc({\n        'doctype': 'Dynamic Link',\n        'link_doctype': 'Customer',\n        'link_name': doc.name,\n        'parenttype': 'Contact',\n        'parent': contact[0].name\n    }).insert()\n    frappe.msgprint(f'Contact {contact[0].name} lié au client {doc.customer_name}')\nelse:\n    frappe.msgprint(f'Aucun contact trouvé pour {doc.customer_name}')",
   "script_type": "DocType Event"
- },
- {
-  "allow_guest": 0,
-  "api_method": "cost-center-update",
-  "cron_format": null,
-  "disabled": 0,
-  "docstatus": 0,
-  "doctype": "Server Script",
-  "doctype_event": "Before Insert",
-  "enable_rate_limit": 0,
-  "event_frequency": "All",
-  "modified": "2024-10-23 00:37:39.753989",
-  "module": "Scout Manager",
-  "name": "modifier les cost center",
-  "rate_limit_count": 5,
-  "rate_limit_seconds": 86400,
-  "reference_doctype": null,
-  "script": "tableList = [\n    \"Account Closing Balance\",\n    \"Asset\",\n    \"Asset Capitalization\",\n    \"Asset Repair\",\n    \"Asset Value Adjustment\",\n    \"Budget\",\n    \"Delivery Note\",\n    \"Delivery Note Item\",\n    \"Expense Claim\",\n    \"Expense Claim Detail\",\n    \"Expense Taxes and Charges\",\n    \"GL Entry\",\n    \"Journal Entry Account\",\n    \"Landed Cost Item\",\n    \"Loyalty Program\",\n    \"Material Request Item\",\n    \"Opening Invoice Creation Tool Item\",\n    \"Payment Entry\",\n    \"Payment Entry Deduction\",\n    \"Payment Ledger Entry\",\n    \"Payment Request\",\n    \"Payroll Entry\",\n    \"POS Invoice\",\n    \"POS Invoice Item\",\n    \"POS Profile\",\n    \"Purchase Invoice\",\n    \"Purchase Invoice Item\",\n    \"Purchase Order\",\n    \"Purchase Order Item\",\n    \"Purchase Receipt\",\n    \"Purchase Receipt Item\",\n    \"Purchase Taxes and Charges\",\n    \"Sales Invoice\",\n    \"Sales Invoice Item\",\n    \"Sales Order\",\n    \"Sales Taxes and Charges\",\n    \"Shipping Rule\",\n    \"Stock Entry Detail\",\n    \"Stock Reconciliation\",\n    \"Subcontracting Order\",\n    \"Subcontracting Order Item\",\n    \"Subcontracting Receipt\",\n    \"Subcontracting Receipt Item\",\n    \"Subscription\",\n    \"Subscription Plan\",\n    \"Supplier Quotation\",\n    \"Supplier Quotation Item\"\n]\n\n\nfor table in tableList:\n    entries = frappe.get_all(table, filters={'unité': 'Meute'}, fields=['name', 'cost_center'])\n    for entry in entries:\n        if(entry.cost_center != \"Meute - 188\"):\n            gl_entry = frappe.get_doc(table, entry.name)\n            gl_entry.cost_center = 'Meute - 188'\n            gl_entry.save()\n        \n    entries = frappe.get_all(table, filters={'unité': 'Troupe'}, fields=['name', 'cost_center'])\n    for entry in entries:\n        if(entry.cost_center != \"Troupe - 188\"):\n            gl_entry = frappe.get_doc(table, entry.name)\n            gl_entry.cost_center = 'Troupe - 188'\n            gl_entry.save()\n        \n        ",
-  "script_type": "API"
  }
 ]

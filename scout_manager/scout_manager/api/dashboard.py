@@ -2,6 +2,8 @@ import erpnext
 import frappe
 from frappe.utils import flt, today
 
+from scout_manager.scout_manager.utils.permissions import require_gl_entry_read
+
 CASH_ACCOUNT_TYPES = ("Bank", "Cash")
 
 
@@ -16,6 +18,7 @@ def get_cash_accounts(company):
 @frappe.whitelist()
 def get_cash_balance(filters=None):
 	"""Number card: current balance of all bank and cash accounts."""
+	require_gl_entry_read()
 	filters = frappe.parse_json(filters) or {}
 	if isinstance(filters, list):
 		filters = {f[1]: f[3] for f in filters if len(f) > 3}

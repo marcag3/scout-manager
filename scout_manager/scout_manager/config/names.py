@@ -35,12 +35,10 @@ TROOP_CUSTOM_FIELDS = {
 TROOP_PROPERTY_SETTER_DOCTYPES = ("Customer", "Customer Group", "Supplier Group")
 
 SERVER_SCRIPT_COTISATION = "Création facture de cotisation"
-SERVER_SCRIPT_COST_CENTER = "modifier les cost center"
 SERVER_SCRIPT_LINK_CONTACTS = "lier les contacts au client"
 
 TROOP_SERVER_SCRIPTS = (
 	SERVER_SCRIPT_COTISATION,
-	SERVER_SCRIPT_COST_CENTER,
 	SERVER_SCRIPT_LINK_CONTACTS,
 )
 
