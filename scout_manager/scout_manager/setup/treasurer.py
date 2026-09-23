@@ -37,6 +37,7 @@ DOCTYPE_ICONS = {
 	"Payment Reconciliation": "tool",
 	"Unreconcile Payment": "split",
 	"Bank Statement Import": "upload",
+	"Scout Bank Import": "upload",
 	"Bank Reconciliation Tool": "tool",
 	"Bank Clearance": "check",
 	"Process Payment Reconciliation": "tool",
@@ -110,6 +111,7 @@ DOCTYPE_PERMISSIONS = {
 	"Payment Reconciliation": {"read": 1, "write": 1, "create": 1, "submit": 1, "cancel": 1},
 	"Unreconcile Payment": {"read": 1, "write": 1, "create": 1, "submit": 1, "cancel": 1},
 	"Bank Statement Import": {"read": 1, "write": 1, "create": 1, "submit": 1, "cancel": 1},
+	"Scout Bank Import": {"read": 1, "write": 1, "create": 1, "delete": 1},
 	"Bank Reconciliation Tool": {"read": 1, "write": 1},
 	"Bank Clearance": {"read": 1, "write": 1, "create": 1, "submit": 1, "cancel": 1},
 	"Process Payment Reconciliation": {"read": 1, "write": 1, "create": 1, "submit": 1, "cancel": 1},
@@ -206,7 +208,12 @@ BANKING_LINKS = [
 
 BANKING_SHORTCUTS = [
 	{"label": "Banking", "type": "URL", "url": "/banking", "color": "Green"},
-	{"label": "Bank Statement Importer", "type": "URL", "url": "/banking/statement-importer", "color": "Grey"},
+	{
+		"label": "Scout Bank Import",
+		"type": "DocType",
+		"link_to": "Scout Bank Import",
+		"color": "Grey",
+	},
 ]
 
 
@@ -313,6 +320,25 @@ def ensure_report_permissions():
 		doc.save(ignore_permissions=True)
 
 
+def _replace_banking_shortcuts(workspace):
+	"""Replace the stock banking importer shortcut with Scout Bank Import."""
+	updated_shortcuts = []
+	existing_labels = set()
+	for shortcut in workspace.shortcuts:
+		if shortcut.label == "Bank Statement Importer":
+			continue
+		updated_shortcuts.append(shortcut.as_dict())
+		existing_labels.add(shortcut.label)
+
+	for shortcut in BANKING_SHORTCUTS:
+		if shortcut["label"] not in existing_labels:
+			updated_shortcuts.append(shortcut)
+
+	workspace.shortcuts = []
+	for row in updated_shortcuts:
+		workspace.append("shortcuts", row)
+
+
 def ensure_banking_workspace_links():
 	"""Add ERPNext v16 banking links and shortcuts to the Scout Treasurer workspace."""
 	if not frappe.db.exists("Workspace", WORKSPACE):
@@ -332,6 +358,16 @@ def ensure_banking_workspace_links():
 	)
 	existing_banking = {link.label: link.as_dict() for link in workspace.links[banking_idx + 1 : next_break]}
 	ordered_specs = BANKING_LINKS + [
+		{
+			"label": "Scout Bank Import",
+			"link_to": "Scout Bank Import",
+			"link_type": "DocType",
+			"type": "Link",
+			"hidden": 0,
+			"is_query_report": 0,
+			"link_count": 0,
+			"onboard": 0,
+		},
 		{
 			"label": "Bank Statement Import",
 			"link_to": "Bank Statement Import",
@@ -364,10 +400,7 @@ def ensure_banking_workspace_links():
 	for row in prefix + [card_break] + ordered_banking + suffix:
 		workspace.append("links", row)
 
-	existing_shortcuts = {shortcut.label for shortcut in workspace.shortcuts}
-	for shortcut in BANKING_SHORTCUTS:
-		if shortcut["label"] not in existing_shortcuts:
-			workspace.append("shortcuts", shortcut)
+	_replace_banking_shortcuts(workspace)
 
 	content = json.loads(workspace.content or "[]")
 	shortcut_names = {
@@ -388,7 +421,12 @@ def ensure_banking_workspace_links():
 			dashboard_idx + 1,
 			{"id": "banking-sc", "type": "shortcut", "data": {"shortcut_name": "Banking", "col": 4}},
 		)
-	if "Bank Statement Importer" not in shortcut_names:
+
+	for block in content:
+		if block.get("type") == "shortcut" and block["data"].get("shortcut_name") == "Bank Statement Importer":
+			block["data"]["shortcut_name"] = "Scout Bank Import"
+
+	if "Scout Bank Import" not in shortcut_names:
 		banking_block_idx = next(
 			(
 				i
@@ -403,7 +441,7 @@ def ensure_banking_workspace_links():
 				{
 					"id": "bsi-sc",
 					"type": "shortcut",
-					"data": {"shortcut_name": "Bank Statement Importer", "col": 4},
+					"data": {"shortcut_name": "Scout Bank Import", "col": 4},
 				},
 			)
 
