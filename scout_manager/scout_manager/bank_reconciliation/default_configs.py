@@ -18,6 +18,23 @@ def get_default_import_config() -> str | None:
 	)
 
 
+def is_legacy_import_config(value: str | None) -> bool:
+	if not value:
+		return False
+	return value == LEGACY_CONFIG_PATH or value.endswith(".json") or "/" in value
+
+
+def resolve_import_config_name(import_config: str | None) -> str | None:
+	"""Map legacy bundled paths and missing links to the default Bank Import Config."""
+	if not import_config or is_legacy_import_config(import_config):
+		return get_default_import_config()
+
+	if frappe.db.exists("Bank Import Config", import_config):
+		return import_config
+
+	return get_default_import_config()
+
+
 def load_bundled_config_json(config_path: str | None = None) -> str:
 	path = resolve_config_path(config_path or get_default_config_path())
 	return path.read_text(encoding="utf-8")

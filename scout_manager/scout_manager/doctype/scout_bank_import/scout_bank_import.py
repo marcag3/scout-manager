@@ -5,11 +5,14 @@ from frappe import _
 from frappe.model.document import Document
 from frappe.utils import getdate
 
-from scout_manager.scout_manager.bank_reconciliation.bank_account_matcher import match_bank_account
+from scout_manager.scout_manager.bank_reconciliation.bank_account_matcher import suggest_bank_account
 from scout_manager.scout_manager.bank_reconciliation.csv_importer import parse_csv
 from scout_manager.scout_manager.bank_reconciliation.file_reader import read_import_file_bytes
 from scout_manager.scout_manager.bank_reconciliation.duplicate_detector import deduplicate_transactions
-from scout_manager.scout_manager.bank_reconciliation.default_configs import get_default_import_config
+from scout_manager.scout_manager.bank_reconciliation.default_configs import (
+	get_default_import_config,
+	resolve_import_config_name,
+)
 from scout_manager.scout_manager.bank_reconciliation.import_config import ImportConfig
 
 
@@ -36,13 +39,11 @@ class ScoutBankImport(Document):
 	# end: auto-generated types
 
 	def before_insert(self):
-		if not self.import_config:
-			self.import_config = get_default_import_config()
+		self.import_config = resolve_import_config_name(self.import_config)
 
 	def validate(self):
+		self.import_config = resolve_import_config_name(self.import_config)
 		self._validate_permissions()
-		if not self.import_config:
-			self.import_config = get_default_import_config()
 		if not self.import_config:
 			frappe.throw(_("No default import config found. Create a Bank Import Config and mark one as default."))
 
@@ -63,7 +64,12 @@ class ScoutBankImport(Document):
 	@frappe.whitelist()
 	def preview_import(self):
 		parsed = self._parse_file()
-		suggested_bank_account = match_bank_account(parsed.account_number, self.bank_account)
+		suggested_bank_account = suggest_bank_account(
+			parsed.account_number,
+			self.import_config,
+			parsed.account_name,
+			self.bank_account,
+		)
 
 		return {
 			"transactions": parsed.transactions[:100],
@@ -83,7 +89,12 @@ class ScoutBankImport(Document):
 			frappe.throw(_("Only draft imports can be processed"))
 
 		parsed = self._parse_file()
-		bank_account = self.bank_account or match_bank_account(parsed.account_number)
+		bank_account = suggest_bank_account(
+			parsed.account_number,
+			self.import_config,
+			parsed.account_name,
+			self.bank_account,
+		)
 		if not bank_account:
 			frappe.throw(_("Select a bank account or include a recognizable account number in the file"))
 
@@ -180,8 +191,7 @@ class ScoutBankImport(Document):
 		return parse_csv(content, config)
 
 	def _get_config(self) -> ImportConfig:
-		if not self.import_config:
-			self.import_config = get_default_import_config()
+		self.import_config = resolve_import_config_name(self.import_config)
 		if not self.import_config:
 			frappe.throw(_("Select an import config"))
 		return ImportConfig.from_doc(self.import_config)
@@ -194,7 +204,7 @@ def preview_bank_import(import_file, import_config=None, bank_account=None):
 		{
 			"doctype": "Scout Bank Import",
 			"import_file": import_file,
-			"import_config": import_config or get_default_import_config(),
+			"import_config": resolve_import_config_name(import_config),
 			"bank_account": bank_account,
 		}
 	)

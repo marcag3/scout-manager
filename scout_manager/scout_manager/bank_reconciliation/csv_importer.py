@@ -77,6 +77,8 @@ def parse_csv(content: bytes | str, config: ImportConfig) -> ParsedImport:
 		result.statement_from_date = min(dates)
 		result.statement_to_date = max(dates)
 
+	result.opening_balance = _derive_opening_balance(result.transactions)
+
 	return result
 
 
@@ -154,6 +156,25 @@ def parse_amount(value: str | None, config: ImportConfig) -> float:
 		return 0.0
 
 	return abs(float(text))
+
+
+def _derive_opening_balance(transactions: list[dict]) -> float | None:
+	"""Infer pre-statement balance from the earliest row with a running balance."""
+	first: tuple[int, str, dict] | None = None
+
+	for index, txn in enumerate(transactions):
+		if txn.get("balance") is None:
+			continue
+
+		date = txn.get("date") or ""
+		if first is None or date < first[1] or (date == first[1] and index < first[0]):
+			first = (index, date, txn)
+
+	if first is None:
+		return None
+
+	txn = first[2]
+	return txn["balance"] - (txn.get("deposit") or 0) + (txn.get("withdrawal") or 0)
 
 
 def _cell(row: list[str], index: int | None) -> str:

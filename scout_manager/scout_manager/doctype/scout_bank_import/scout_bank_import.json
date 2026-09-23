@@ -32,10 +32,12 @@
    "reqd": 1
   },
   {
+   "default": "Desjardins — CSV Accentué",
    "fieldname": "import_config",
    "fieldtype": "Link",
    "in_list_view": 1,
    "label": "Import Config",
+   "link_filters": "[[\"Bank Import Config\",\"disabled\",\"=\",0]]",
    "options": "Bank Import Config",
    "reqd": 1
   },

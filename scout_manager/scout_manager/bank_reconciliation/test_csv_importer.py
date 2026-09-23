@@ -10,6 +10,7 @@ from scout_manager.scout_manager.bank_reconciliation.duplicate_detector import (
 	deduplicate_transactions,
 	transaction_fingerprint,
 )
+from scout_manager.scout_manager.bank_reconciliation.default_configs import sync_desjardins_default_config
 from scout_manager.scout_manager.bank_reconciliation.import_config import (
 	ImportConfig,
 	get_default_config_path,
@@ -35,6 +36,15 @@ def make_sample_csv_bytes(**overrides):
 
 
 class TestCSVImporter(IntegrationTestCase):
+	def test_import_config_from_doc_matches_bundled_path(self):
+		config_name = sync_desjardins_default_config()
+		from_doc = ImportConfig.from_doc(config_name)
+		from_path = ImportConfig.from_path(get_default_config_path())
+
+		self.assertEqual(from_doc.roles, from_path.roles)
+		self.assertEqual(from_doc.encoding, from_path.encoding)
+		self.assertEqual(from_doc.conversion, from_path.conversion)
+
 	def test_parse_desjardins_rows(self):
 		parsed = parse_csv(make_sample_csv(), DESJARDINS_CONFIG)
 
@@ -52,6 +62,7 @@ class TestCSVImporter(IntegrationTestCase):
 		withdrawal = parsed.transactions[1]
 		self.assertEqual(withdrawal["withdrawal"], 12.34)
 		self.assertEqual(withdrawal["deposit"], 0.0)
+		self.assertEqual(parsed.opening_balance, 1500.0)
 		self.assertEqual(parsed.closing_balance, 1637.66)
 
 	def test_iso_8859_1_encoding(self):

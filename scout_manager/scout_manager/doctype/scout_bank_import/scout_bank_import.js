@@ -1,5 +1,7 @@
 frappe.ui.form.on("Scout Bank Import", {
 	refresh(frm) {
+		frm.events.ensure_import_config(frm);
+
 		if (!frm.is_new() && frm.doc.status === "Draft") {
 			frm.add_custom_button(__("Import Transactions"), () => frm.events.run_import(frm), __("Actions"));
 		}
@@ -10,9 +12,45 @@ frappe.ui.form.on("Scout Bank Import", {
 	},
 
 	import_file(frm) {
-		if (frm.doc.import_file) {
-			frm.events.run_preview(frm);
+		if (!frm.doc.import_file) {
+			return;
 		}
+
+		// Wait for Frappe's attach upload/save to finish before previewing.
+		frappe.after_ajax(() => {
+			frm.events.ensure_import_config(frm).then((config) => {
+				if (!config) {
+					frappe.msgprint(
+						__(
+							"No import config available. Ask an administrator to set up a default Bank Import Config."
+						)
+					);
+					return;
+				}
+				frm.events.run_preview(frm);
+			});
+		});
+	},
+
+	ensure_import_config(frm) {
+		const current = frm.doc.import_config;
+		if (current && !frm.events.is_legacy_import_config(current)) {
+			return Promise.resolve(current);
+		}
+
+		return frappe.db
+			.get_value("Bank Import Config", { is_default: 1, disabled: 0 }, "name")
+			.then(({ message }) => {
+				if (message?.name) {
+					frm.set_value("import_config", message.name);
+					return message.name;
+				}
+				return null;
+			});
+	},
+
+	is_legacy_import_config(value) {
+		return Boolean(value && (value.includes("/") || value.endsWith(".json")));
 	},
 
 	run_preview(frm) {
@@ -20,42 +58,56 @@ frappe.ui.form.on("Scout Bank Import", {
 			return;
 		}
 
-		frappe.call({
-			method: "scout_manager.scout_manager.doctype.scout_bank_import.scout_bank_import.preview_bank_import",
-			args: {
-				import_file: frm.doc.import_file,
-				import_config: frm.doc.import_config,
-				bank_account: frm.doc.bank_account,
-			},
-			freeze: true,
-			freeze_message: __("Parsing bank statement..."),
-			callback({ message }) {
-				if (!message) {
-					return;
-				}
+		frm.events.ensure_import_config(frm).then((config) => {
+			if (!config) {
+				return;
+			}
 
-				if (message.suggested_bank_account && !frm.doc.bank_account) {
-					frm.set_value("bank_account", message.suggested_bank_account);
-				}
-				if (message.account_number) {
-					frm.set_value("detected_account_number", message.account_number);
-				}
-				if (message.statement_from_date) {
-					frm.set_value("statement_from_date", message.statement_from_date);
-				}
-				if (message.statement_to_date) {
-					frm.set_value("statement_to_date", message.statement_to_date);
-				}
-				if (message.opening_balance != null) {
-					frm.set_value("opening_balance", message.opening_balance);
-				}
-				if (message.closing_balance != null) {
-					frm.set_value("closing_balance", message.closing_balance);
-				}
+			frappe.call({
+				method:
+					"scout_manager.scout_manager.doctype.scout_bank_import.scout_bank_import.preview_bank_import",
+				args: {
+					import_file: frm.doc.import_file,
+					import_config: config,
+					bank_account: frm.doc.bank_account,
+				},
+				freeze: true,
+				freeze_message: __("Parsing bank statement..."),
+				callback({ message }) {
+					if (!message) {
+						return;
+					}
 
-				frm.events.render_preview(frm, message);
-			},
+					frm.events.apply_preview_fields(frm, message);
+					frm.events.render_preview(frm, message);
+				},
+			});
 		});
+	},
+
+	apply_preview_fields(frm, message) {
+		if (message.suggested_bank_account && !frm.doc.bank_account) {
+			frm.set_value("bank_account", message.suggested_bank_account);
+			frappe.show_alert({
+				message: __("Bank account matched from file"),
+				indicator: "green",
+			});
+		}
+		if (message.account_number) {
+			frm.set_value("detected_account_number", message.account_number);
+		}
+		if (message.statement_from_date) {
+			frm.set_value("statement_from_date", message.statement_from_date);
+		}
+		if (message.statement_to_date) {
+			frm.set_value("statement_to_date", message.statement_to_date);
+		}
+		if (message.opening_balance != null) {
+			frm.set_value("opening_balance", message.opening_balance);
+		}
+		if (message.closing_balance != null) {
+			frm.set_value("closing_balance", message.closing_balance);
+		}
 	},
 
 	render_preview(frm, data) {
