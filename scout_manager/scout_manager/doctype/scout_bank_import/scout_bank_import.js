@@ -1,4 +1,8 @@
 frappe.ui.form.on("Scout Bank Import", {
+	onload(frm) {
+		frm._pending_preview = false;
+	},
+
 	refresh(frm) {
 		frm.events.ensure_import_config(frm);
 
@@ -16,20 +20,27 @@ frappe.ui.form.on("Scout Bank Import", {
 			return;
 		}
 
-		// Wait for Frappe's attach upload/save to finish before previewing.
-		frappe.after_ajax(() => {
-			frm.events.ensure_import_config(frm).then((config) => {
-				if (!config) {
-					frappe.msgprint(
-						__(
-							"No import config available. Ask an administrator to set up a default Bank Import Config."
-						)
-					);
-					return;
-				}
-				frm.events.run_preview(frm);
-			});
-		});
+		// Attach upload auto-saves the form. Run preview only after that save completes
+		// so detected fields are not wiped by a late reload.
+		frm._pending_preview = true;
+		clearTimeout(frm._preview_timer);
+		frm._preview_timer = setTimeout(() => {
+			if (!frm._pending_preview) {
+				return;
+			}
+			frm._pending_preview = false;
+			frm.events.run_preview(frm);
+		}, 3000);
+	},
+
+	after_save(frm) {
+		if (!frm._pending_preview || !frm.doc.import_file) {
+			return;
+		}
+
+		frm._pending_preview = false;
+		clearTimeout(frm._preview_timer);
+		frm.events.run_preview(frm);
 	},
 
 	ensure_import_config(frm) {
@@ -41,11 +52,11 @@ frappe.ui.form.on("Scout Bank Import", {
 		return frappe.db
 			.get_value("Bank Import Config", { is_default: 1, disabled: 0 }, "name")
 			.then(({ message }) => {
-				if (message?.name) {
-					frm.set_value("import_config", message.name);
-					return message.name;
+				if (message?.name && message.name !== frm.doc.import_config) {
+					frm.doc.import_config = message.name;
+					frm.refresh_field("import_config");
 				}
-				return null;
+				return message?.name || null;
 			});
 	},
 
@@ -60,17 +71,17 @@ frappe.ui.form.on("Scout Bank Import", {
 
 		frm.events.ensure_import_config(frm).then((config) => {
 			if (!config) {
+				frappe.msgprint(
+					__(
+						"No import config available. Ask an administrator to set up a default Bank Import Config."
+					)
+				);
 				return;
 			}
 
-			frappe.call({
-				method:
-					"scout_manager.scout_manager.doctype.scout_bank_import.scout_bank_import.preview_bank_import",
-				args: {
-					import_file: frm.doc.import_file,
-					import_config: config,
-					bank_account: frm.doc.bank_account,
-				},
+			frm.call({
+				method: "preview_import",
+				doc: frm.doc,
 				freeze: true,
 				freeze_message: __("Parsing bank statement..."),
 				callback({ message }) {
@@ -87,26 +98,32 @@ frappe.ui.form.on("Scout Bank Import", {
 
 	apply_preview_fields(frm, message) {
 		if (message.suggested_bank_account && !frm.doc.bank_account) {
-			frm.set_value("bank_account", message.suggested_bank_account);
+			frm.doc.bank_account = message.suggested_bank_account;
+			frm.refresh_field("bank_account");
 			frappe.show_alert({
 				message: __("Bank account matched from file"),
 				indicator: "green",
 			});
 		}
 		if (message.account_number) {
-			frm.set_value("detected_account_number", message.account_number);
+			frm.doc.detected_account_number = message.account_number;
+			frm.refresh_field("detected_account_number");
 		}
 		if (message.statement_from_date) {
-			frm.set_value("statement_from_date", message.statement_from_date);
+			frm.doc.statement_from_date = message.statement_from_date;
+			frm.refresh_field("statement_from_date");
 		}
 		if (message.statement_to_date) {
-			frm.set_value("statement_to_date", message.statement_to_date);
+			frm.doc.statement_to_date = message.statement_to_date;
+			frm.refresh_field("statement_to_date");
 		}
 		if (message.opening_balance != null) {
-			frm.set_value("opening_balance", message.opening_balance);
+			frm.doc.opening_balance = message.opening_balance;
+			frm.refresh_field("opening_balance");
 		}
 		if (message.closing_balance != null) {
-			frm.set_value("closing_balance", message.closing_balance);
+			frm.doc.closing_balance = message.closing_balance;
+			frm.refresh_field("closing_balance");
 		}
 	},
 
