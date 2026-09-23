@@ -51,10 +51,10 @@ Two troop-specific reporting assets currently live **only in the ERPNext site da
 
 **Widget (**`Argent disponible`**):** Client-side block embedded on a workspace. For each unit cost center (Groupe, Colonie, Meute, Troupe, Clan), runs stock **Trial Balance** and computes:
 
-- `disponible` = Banque (1011 + 1030 realloc) + Caisse (1012) − Passif (2010 + tax accounts)
-- `disponible_ar` = `disponible` + créances clients (1021) when non-zero
+- `disponible` = Banque (`Bank` + `Temporary` realloc) + Caisse (`Cash`) − Passif (credit balances on `Liability`)
+- `disponible_ar` = `disponible` + créances (`Receivable`) when non-zero
 
-Hardcoded today: company `188e Montréal-Nord`, account numbers, unit display order. Role: **All**.
+Account classification uses ERPNext **Account Type** / **Root Type** (see `docs/design/argent-disponible.md`). Company from ERPNext defaults. Role: **All**.
 
 **Report (**`Rentabilité par projet par centre de coût`**):** SQL Query Report on `GL Entry` with `company` + `fiscal_year` filters. Pivots income/expense net (`credit − debit`) into columns per cost center (`Clan - 188`, `Colonie - 188`, `Groupe - 188`, `Louvette - 188`, `Meute - 188`, `Troupe - 188`, `Autres`, `Total`). Client JS adds **drill-down** from any amount cell → **General Ledger** filtered by project, cost center, and fiscal-year dates. Roles: Accounts User, Accounts Manager, Auditor, Projects User. Letter head: `188`.
 
@@ -840,7 +840,7 @@ Backend calls are whitelisted methods on the page controller or `bank_reconcilia
 | Logic            | ~200 lines inline `script` on block                                | `public/js/argent_disponible_widget.js`, loaded by thin inline bootstrap      |
 | Styles           | Inline `style` on block                                            | Move to `public/css/argent_disponible_widget.css` or keep in fixture          |
 | Data source      | `frappe.desk.query_report.run` → Trial Balance per cost center     | unchanged in v1                                                               |
-| Hardcoded config | Company, account nos. (1011, 1012, 1030, 1021, passif), unit order | Extract to `scout_manager/config/troop_accounts.py` or top of JS module in v1 |
+| Account tagging | Bank, Temporary (realloc), Cash, Receivable, Liability (passif) | See `docs/design/argent-disponible.md`; constants in `config/troop.py` |
 
 
 **Migration steps:**

@@ -3,9 +3,11 @@ import frappe
 from frappe import _
 
 from scout_manager.scout_manager.config.troop import (
-	ACCOUNT_NUMBERS,
-	ARGENT_DISPONIBLE_ACCOUNTS,
-	PASSIF_ACCOUNT_NUMBERS,
+	BANQUE_ACCOUNT_TYPES,
+	CAISSE_ACCOUNT_TYPES,
+	PASSIF_ROOT_TYPE,
+	REALLOC_ACCOUNT_TYPES,
+	RECEIVABLE_ACCOUNT_TYPES,
 )
 from scout_manager.scout_manager.utils.cost_centers import get_unit_cost_centers
 
@@ -91,12 +93,11 @@ def get_data(company, to_date, units):
 	params = {
 		"company": company,
 		"to_date": to_date,
-		"banque": ACCOUNT_NUMBERS["banque"],
-		"caisse": ACCOUNT_NUMBERS["caisse"],
-		"realloc": ACCOUNT_NUMBERS["realloc"],
-		"ar": ACCOUNT_NUMBERS["ar"],
-		"passif_numbers": PASSIF_ACCOUNT_NUMBERS,
-		"all_accounts": ARGENT_DISPONIBLE_ACCOUNTS,
+		"banque_types": BANQUE_ACCOUNT_TYPES,
+		"realloc_types": REALLOC_ACCOUNT_TYPES,
+		"caisse_types": CAISSE_ACCOUNT_TYPES,
+		"receivable_types": RECEIVABLE_ACCOUNT_TYPES,
+		"passif_root_type": PASSIF_ROOT_TYPE,
 		"unit_names": unit_names,
 	}
 
@@ -115,13 +116,37 @@ def get_data(company, to_date, units):
 		LEFT JOIN (
 			SELECT
 				gle.cost_center AS cost_center,
-				SUM(CASE WHEN acc.account_number = %(banque)s THEN gle.debit - gle.credit ELSE 0 END) AS banque,
-				SUM(CASE WHEN acc.account_number = %(caisse)s THEN gle.debit - gle.credit ELSE 0 END) AS caisse,
-				SUM(CASE WHEN acc.account_number = %(realloc)s THEN gle.debit - gle.credit ELSE 0 END) AS realloc,
-				SUM(CASE WHEN acc.account_number = %(ar)s THEN gle.debit - gle.credit ELSE 0 END) AS ar,
 				SUM(
 					CASE
-						WHEN acc.account_number IN %(passif_numbers)s
+						WHEN acc.account_type IN %(banque_types)s
+						THEN gle.debit - gle.credit
+						ELSE 0
+					END
+				) AS banque,
+				SUM(
+					CASE
+						WHEN acc.account_type IN %(realloc_types)s
+						THEN gle.debit - gle.credit
+						ELSE 0
+					END
+				) AS realloc,
+				SUM(
+					CASE
+						WHEN acc.account_type IN %(caisse_types)s
+						THEN gle.debit - gle.credit
+						ELSE 0
+					END
+				) AS caisse,
+				SUM(
+					CASE
+						WHEN acc.account_type IN %(receivable_types)s
+						THEN gle.debit - gle.credit
+						ELSE 0
+					END
+				) AS ar,
+				SUM(
+					CASE
+						WHEN acc.root_type = %(passif_root_type)s
 						THEN GREATEST(gle.credit - gle.debit, 0)
 						ELSE 0
 					END
@@ -132,7 +157,14 @@ def get_data(company, to_date, units):
 				AND gle.posting_date <= %(to_date)s
 				AND IFNULL(gle.is_cancelled, 0) = 0
 				AND IFNULL(gle.cost_center, '') != ''
-				AND acc.account_number IN %(all_accounts)s
+				AND acc.is_group = 0
+				AND (
+					acc.account_type IN %(banque_types)s
+					OR acc.account_type IN %(realloc_types)s
+					OR acc.account_type IN %(caisse_types)s
+					OR acc.account_type IN %(receivable_types)s
+					OR acc.root_type = %(passif_root_type)s
+				)
 			GROUP BY gle.cost_center
 		) gl ON gl.cost_center = cc.name
 		WHERE cc.company = %(company)s

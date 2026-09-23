@@ -1,12 +1,13 @@
-"""Troop-wide defaults shared by reports, widgets, and APIs."""
+"""Account classification for Argent disponible and related treasurer reports.
 
-ACCOUNT_NUMBERS = {
-	"banque": "1011",
-	"caisse": "1012",
-	"realloc": "1030",
-	"ar": "1021",
-}
+Balances are resolved from ERPNext Account metadata (account_type, root_type),
+not hardcoded account numbers. See docs/design/argent-disponible.md for setup.
+"""
 
-PASSIF_ACCOUNT_NUMBERS = ["2010", "100301464RT0001", "1006141893TQ0001"]
+# Leaf accounts only (is_group = 0) matching these types are included.
 
-ARGENT_DISPONIBLE_ACCOUNTS = list(ACCOUNT_NUMBERS.values()) + PASSIF_ACCOUNT_NUMBERS
+BANQUE_ACCOUNT_TYPES = ("Bank",)
+REALLOC_ACCOUNT_TYPES = ("Temporary",)
+CAISSE_ACCOUNT_TYPES = ("Cash",)
+RECEIVABLE_ACCOUNT_TYPES = ("Receivable",)
+PASSIF_ROOT_TYPE = "Liability"
