@@ -11,6 +11,8 @@ REPORT_BALANCE_SHEET_CC = "Balance sheet by cost center"
 REPORT_RENTABILITE_CC = "Project Profitability by Cost Center"
 
 ARGENT_DISPONIBLE_BLOCK = "Available Funds"
+# Workspace content key; Frappe matches this to Workspace Custom Block.label via __().
+ARGENT_DISPONIBLE_BLOCK_LABEL = "Argent disponible"
 ARGENT_DISPONIBLE_CSS = "argent_disponible_widget.css"
 ARGENT_DISPONIBLE_JS = "argent_disponible_widget.js"
 

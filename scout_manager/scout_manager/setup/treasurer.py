@@ -6,6 +6,8 @@ from frappe.modules.export_file import strip_default_fields
 from frappe.modules.utils import create_directory_on_app_path
 
 from scout_manager.scout_manager.config.names import (
+	ARGENT_DISPONIBLE_BLOCK,
+	ARGENT_DISPONIBLE_BLOCK_LABEL,
 	RENAMED_LINK_TARGETS,
 	REPORT_ARGENT_DISPONIBLE,
 	REPORT_BALANCE_SHEET_CC,
@@ -255,16 +257,37 @@ def refresh_renamed_workspace_links():
 		new_target = RENAMED_LINK_TARGETS.get(block.custom_block_name)
 		if new_target:
 			block.custom_block_name = new_target
-			block.label = new_target
+			if new_target == ARGENT_DISPONIBLE_BLOCK:
+				block.label = ARGENT_DISPONIBLE_BLOCK_LABEL
+			else:
+				block.label = new_target
+			changed = True
+		elif block.custom_block_name == ARGENT_DISPONIBLE_BLOCK and block.label != ARGENT_DISPONIBLE_BLOCK_LABEL:
+			block.label = ARGENT_DISPONIBLE_BLOCK_LABEL
 			changed = True
 
-	content = workspace.content
+	content = json.loads(workspace.content or "[]")
+	for block in content:
+		if block.get("type") != "custom_block":
+			continue
+
+		block_name = block.get("data", {}).get("custom_block_name")
+		if block_name in {ARGENT_DISPONIBLE_BLOCK, ARGENT_DISPONIBLE_BLOCK_LABEL, "Argent disponible"}:
+			if block_name != ARGENT_DISPONIBLE_BLOCK_LABEL:
+				block["data"]["custom_block_name"] = ARGENT_DISPONIBLE_BLOCK_LABEL
+				changed = True
+
 	for old_name, new_name in RENAMED_LINK_TARGETS.items():
-		if old_name in content:
-			content = content.replace(old_name, new_name)
+		if old_name == ARGENT_DISPONIBLE_BLOCK_LABEL:
+			continue
+
+		updated_content = json.dumps(content)
+		if old_name in updated_content:
+			content = json.loads(updated_content.replace(old_name, new_name))
 			changed = True
-	if content != workspace.content:
-		workspace.content = content
+
+	if changed:
+		workspace.content = json.dumps(content)
 
 	if not changed:
 		return
