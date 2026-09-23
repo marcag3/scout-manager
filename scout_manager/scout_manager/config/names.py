@@ -11,4 +11,4 @@ ARGENT_DISPONIBLE_JS = "argent_disponible_widget.js"
 COST_CENTER_DISPLAY_ORDER_FIELD = "custom_ordre_affichage"
 CUSTOMER_GROUP_COST_CENTER_FIELD = "custom_centre_de_cout"
 
-RETIRED_CLIENT_SCRIPTS = ("set cost center payment", "set unit")
+RETIRED_CLIENT_SCRIPTS = ("set cost center payment", "set unit", "purchase invoice header dimensions")

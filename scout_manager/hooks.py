@@ -20,6 +20,10 @@ fixtures = [
 		"dt": "Custom Field",
 		"filters": [["fieldname", "=", "custom_ordre_affichage"], ["dt", "=", "Cost Center"]],
 	},
+	{
+		"dt": "Property Setter",
+		"filters": [["module", "=", "Scout Manager"]],
+	},
 ]
 
 after_migrate = [
@@ -170,7 +174,13 @@ after_migrate = [
 doc_events = {
 	"Payment Entry": {
 		"before_validate": "scout_manager.scout_manager.accounting.payment_entry.inherit_dimensions_from_references",
-	}
+	},
+	"Sales Invoice": {
+		"before_validate": "scout_manager.scout_manager.accounting.invoice_dimensions.sync_header_dimensions_to_items",
+	},
+	"Purchase Invoice": {
+		"before_validate": "scout_manager.scout_manager.accounting.invoice_dimensions.sync_header_dimensions_to_items",
+	},
 }
 
 # Scheduled Tasks
