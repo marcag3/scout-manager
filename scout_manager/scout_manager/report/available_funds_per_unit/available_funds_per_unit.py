@@ -109,9 +109,9 @@ def get_data(company, to_date, units):
 			IFNULL(gl.banque, 0) + IFNULL(gl.realloc, 0) AS banque,
 			IFNULL(gl.caisse, 0) AS caisse,
 			IFNULL(gl.ar, 0) AS ar,
-			IFNULL(gl.passif, 0) AS passif,
-			IFNULL(gl.banque, 0) + IFNULL(gl.realloc, 0) + IFNULL(gl.caisse, 0) - IFNULL(gl.passif, 0) AS disponible,
-			IFNULL(gl.banque, 0) + IFNULL(gl.realloc, 0) + IFNULL(gl.caisse, 0) - IFNULL(gl.passif, 0) + IFNULL(gl.ar, 0) AS disponible_ar
+			IFNULL(passif.passif, 0) AS passif,
+			IFNULL(gl.banque, 0) + IFNULL(gl.realloc, 0) + IFNULL(gl.caisse, 0) - IFNULL(passif.passif, 0) AS disponible,
+			IFNULL(gl.banque, 0) + IFNULL(gl.realloc, 0) + IFNULL(gl.caisse, 0) - IFNULL(passif.passif, 0) + IFNULL(gl.ar, 0) AS disponible_ar
 		FROM `tabCost Center` cc
 		LEFT JOIN (
 			SELECT
@@ -143,14 +143,7 @@ def get_data(company, to_date, units):
 						THEN gle.debit - gle.credit
 						ELSE 0
 					END
-				) AS ar,
-				SUM(
-					CASE
-						WHEN acc.root_type = %(passif_root_type)s
-						THEN GREATEST(gle.credit - gle.debit, 0)
-						ELSE 0
-					END
-				) AS passif
+				) AS ar
 			FROM `tabGL Entry` gle
 			INNER JOIN `tabAccount` acc ON acc.name = gle.account
 			WHERE gle.company = %(company)s
@@ -163,10 +156,29 @@ def get_data(company, to_date, units):
 					OR acc.account_type IN %(realloc_types)s
 					OR acc.account_type IN %(caisse_types)s
 					OR acc.account_type IN %(receivable_types)s
-					OR acc.root_type = %(passif_root_type)s
 				)
 			GROUP BY gle.cost_center
 		) gl ON gl.cost_center = cc.name
+		LEFT JOIN (
+			SELECT
+				liability.cost_center,
+				SUM(liability.account_passif) AS passif
+			FROM (
+				SELECT
+					gle.cost_center,
+					GREATEST(SUM(gle.credit - gle.debit), 0) AS account_passif
+				FROM `tabGL Entry` gle
+				INNER JOIN `tabAccount` acc ON acc.name = gle.account
+				WHERE gle.company = %(company)s
+					AND gle.posting_date <= %(to_date)s
+					AND IFNULL(gle.is_cancelled, 0) = 0
+					AND IFNULL(gle.cost_center, '') != ''
+					AND acc.is_group = 0
+					AND acc.root_type = %(passif_root_type)s
+				GROUP BY gle.cost_center, gle.account
+			) liability
+			GROUP BY liability.cost_center
+		) passif ON passif.cost_center = cc.name
 		WHERE cc.company = %(company)s
 			AND cc.is_group = 0
 			AND cc.disabled = 0

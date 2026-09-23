@@ -17,7 +17,7 @@ Per cost center:
 | **Disponible** | Banque + Caisse − Passif |
 | **Disponible incl. créances** | Disponible + À recevoir |
 
-Asset-side amounts use `debit − credit`. Passif uses `GREATEST(credit − debit, 0)` so only amounts **owed** reduce disponible (debit balances on tax or payable accounts contribute zero).
+Asset-side amounts use `debit − credit`. Passif sums **net credit balances per liability account** (`GREATEST(SUM(credit − debit), 0)` grouped by account), so only amounts still **owed** reduce disponible. Paid invoices no longer count, and debit balances on tax or payable accounts contribute zero.
 
 ## How to tag accounts
 
