@@ -1,38 +1,46 @@
 [
  {
+  "docstatus": 0,
   "doctype": "Client Script",
-  "name": "Calcul age",
   "dt": "Customer",
-  "view": "Form",
   "enabled": 1,
+  "modified": "2026-09-22 23:36:49.133229",
   "module": "Scout Manager",
-  "script": "frappe.ui.form.on('Customer', {\n\trefresh(frm) {\n\t\tif (!frm.doc.custom_date_de_naissance) {\n\t\t\treturn;\n\t\t}\n\t\tconst age = moment().diff(frm.doc.custom_date_de_naissance, 'years');\n\t\tfrm.set_value('custom_age', age, false, true);\n\t},\n})"
+  "name": "Calcul age",
+  "script": "frappe.ui.form.on('Customer', {\n\trefresh(frm) {\n\t\tif (!frm.doc.custom_date_de_naissance) {\n\t\t\treturn;\n\t\t}\n\t\tconst age = moment().diff(frm.doc.custom_date_de_naissance, 'years');\n\t\tfrm.set_value('custom_age', age, false, true);\n\t},\n})",
+  "view": "Form"
  },
  {
+  "docstatus": 0,
   "doctype": "Client Script",
-  "name": "email payment entry",
   "dt": "Payment Entry",
-  "view": "Form",
   "enabled": 1,
+  "modified": "2026-09-22 23:36:49.184369",
   "module": "Scout Manager",
-  "script": "frappe.ui.form.on('Payment Entry', {\n\tparty(frm) {\n\t\tif (frm.doc.party_type !== 'Customer' || !frm.doc.party) {\n\t\t\treturn;\n\t\t}\n\n\t\tfrappe.call({\n\t\t\tmethod: 'frappe.client.get_value',\n\t\t\targs: {\n\t\t\t\tdoctype: 'Customer',\n\t\t\t\tfieldname: 'customer_primary_contact',\n\t\t\t\tfilters: { name: frm.doc.party },\n\t\t\t},\n\t\t\tcallback(r) {\n\t\t\t\tif (r.message?.customer_primary_contact) {\n\t\t\t\t\tfrm.set_value('contact_person', r.message.customer_primary_contact);\n\t\t\t\t}\n\t\t\t},\n\t\t});\n\t},\n});"
+  "name": "email payment entry",
+  "script": "frappe.ui.form.on('Payment Entry', {\n\tparty(frm) {\n\t\tif (frm.doc.party_type !== 'Customer' || !frm.doc.party) {\n\t\t\treturn;\n\t\t}\n\n\t\tfrappe.call({\n\t\t\tmethod: 'frappe.client.get_value',\n\t\t\targs: {\n\t\t\t\tdoctype: 'Customer',\n\t\t\t\tfieldname: 'customer_primary_contact',\n\t\t\t\tfilters: { name: frm.doc.party },\n\t\t\t},\n\t\t\tcallback(r) {\n\t\t\t\tif (r.message?.customer_primary_contact) {\n\t\t\t\t\tfrm.set_value('contact_person', r.message.customer_primary_contact);\n\t\t\t\t}\n\t\t\t},\n\t\t});\n\t},\n});",
+  "view": "Form"
  },
  {
+  "docstatus": 0,
   "doctype": "Client Script",
-  "name": "expanse claim item cost center and project",
   "dt": "Expense Claim",
-  "view": "Form",
   "enabled": 1,
+  "modified": "2026-09-22 23:36:49.192615",
   "module": "Scout Manager",
-  "script": "frappe.ui.form.on('Expense Claim', {\n\tcost_center(frm) {\n\t\t(frm.doc.expenses || []).forEach((expense) => {\n\t\t\texpense.cost_center = frm.doc.cost_center;\n\t\t});\n\t\tfrm.refresh_field('expenses');\n\t},\n\tproject(frm) {\n\t\t(frm.doc.expenses || []).forEach((expense) => {\n\t\t\texpense.project = frm.doc.project;\n\t\t});\n\t\tfrm.refresh_field('expenses');\n\t},\n});\n\nfrappe.ui.form.on('Expense Claim Detail', {\n\texpenses_add(frm) {\n\t\tconst row = frm.doc.expenses[frm.doc.expenses.length - 1];\n\t\trow.cost_center = frm.doc.cost_center;\n\t\trow.project = frm.doc.project;\n\t\tfrm.refresh_field('expenses');\n\t},\n});"
+  "name": "expanse claim item cost center and project",
+  "script": "frappe.ui.form.on('Expense Claim', {\n\tcost_center(frm) {\n\t\t(frm.doc.expenses || []).forEach((expense) => {\n\t\t\texpense.cost_center = frm.doc.cost_center;\n\t\t});\n\t\tfrm.refresh_field('expenses');\n\t},\n\tproject(frm) {\n\t\t(frm.doc.expenses || []).forEach((expense) => {\n\t\t\texpense.project = frm.doc.project;\n\t\t});\n\t\tfrm.refresh_field('expenses');\n\t},\n});\n\nfrappe.ui.form.on('Expense Claim Detail', {\n\texpenses_add(frm) {\n\t\tconst row = frm.doc.expenses[frm.doc.expenses.length - 1];\n\t\trow.cost_center = frm.doc.cost_center;\n\t\trow.project = frm.doc.project;\n\t\tfrm.refresh_field('expenses');\n\t},\n});",
+  "view": "Form"
  },
  {
+  "docstatus": 0,
   "doctype": "Client Script",
-  "name": "set cost center",
   "dt": "Sales Invoice",
-  "view": "Form",
   "enabled": 1,
+  "modified": "2026-09-22 23:36:49.200563",
   "module": "Scout Manager",
-  "script": "const DOCTYPE_SALES_INVOICE = 'Sales Invoice';\nconst DOCTYPE_CUSTOMER = 'Customer';\nconst DOCTYPE_CUSTOMER_GROUP = 'Customer Group';\nconst FIELD_CUSTOMER_GROUP = 'customer_group';\nconst FIELD_COST_CENTER = 'cost_center';\nconst FIELD_CUSTOMER_GROUP_COST_CENTER = 'custom_centre_de_cout';\n\nfrappe.ui.form.on(DOCTYPE_SALES_INVOICE, {\n\tcustomer(frm) {\n\t\tif (!frm.doc.customer) {\n\t\t\treturn;\n\t\t}\n\n\t\tfrappe.call({\n\t\t\tmethod: 'frappe.client.get_value',\n\t\t\targs: {\n\t\t\t\tdoctype: DOCTYPE_CUSTOMER,\n\t\t\t\tfilters: { name: frm.doc.customer },\n\t\t\t\tfieldname: FIELD_CUSTOMER_GROUP,\n\t\t\t},\n\t\t\tcallback(r) {\n\t\t\t\tconst customer_group = r.message?.[FIELD_CUSTOMER_GROUP];\n\t\t\t\tif (!customer_group) {\n\t\t\t\t\treturn;\n\t\t\t\t}\n\n\t\t\t\tfrappe.call({\n\t\t\t\t\tmethod: 'frappe.client.get_value',\n\t\t\t\t\targs: {\n\t\t\t\t\t\tdoctype: DOCTYPE_CUSTOMER_GROUP,\n\t\t\t\t\t\tfilters: { name: customer_group },\n\t\t\t\t\t\tfieldname: FIELD_CUSTOMER_GROUP_COST_CENTER,\n\t\t\t\t\t},\n\t\t\t\t\tcallback(res) {\n\t\t\t\t\t\tconst cost_center = res.message?.[FIELD_CUSTOMER_GROUP_COST_CENTER];\n\t\t\t\t\t\tif (cost_center && frm.doc[FIELD_COST_CENTER] !== cost_center) {\n\t\t\t\t\t\t\tfrm.set_value(FIELD_COST_CENTER, cost_center);\n\t\t\t\t\t\t}\n\t\t\t\t\t},\n\t\t\t\t});\n\t\t\t},\n\t\t});\n\t},\n});"
+  "name": "set cost center",
+  "script": "const DOCTYPE_SALES_INVOICE = 'Sales Invoice';\nconst DOCTYPE_CUSTOMER = 'Customer';\nconst DOCTYPE_CUSTOMER_GROUP = 'Customer Group';\nconst FIELD_CUSTOMER_GROUP = 'customer_group';\nconst FIELD_COST_CENTER = 'cost_center';\nconst FIELD_CUSTOMER_GROUP_COST_CENTER = 'custom_centre_de_cout';\n\nfrappe.ui.form.on(DOCTYPE_SALES_INVOICE, {\n\tcustomer(frm) {\n\t\tif (!frm.doc.customer) {\n\t\t\treturn;\n\t\t}\n\n\t\tfrappe.call({\n\t\t\tmethod: 'frappe.client.get_value',\n\t\t\targs: {\n\t\t\t\tdoctype: DOCTYPE_CUSTOMER,\n\t\t\t\tfilters: { name: frm.doc.customer },\n\t\t\t\tfieldname: FIELD_CUSTOMER_GROUP,\n\t\t\t},\n\t\t\tcallback(r) {\n\t\t\t\tconst customer_group = r.message?.[FIELD_CUSTOMER_GROUP];\n\t\t\t\tif (!customer_group) {\n\t\t\t\t\treturn;\n\t\t\t\t}\n\n\t\t\t\tfrappe.call({\n\t\t\t\t\tmethod: 'frappe.client.get_value',\n\t\t\t\t\targs: {\n\t\t\t\t\t\tdoctype: DOCTYPE_CUSTOMER_GROUP,\n\t\t\t\t\t\tfilters: { name: customer_group },\n\t\t\t\t\t\tfieldname: FIELD_CUSTOMER_GROUP_COST_CENTER,\n\t\t\t\t\t},\n\t\t\t\t\tcallback(res) {\n\t\t\t\t\t\tconst cost_center = res.message?.[FIELD_CUSTOMER_GROUP_COST_CENTER];\n\t\t\t\t\t\tif (cost_center && frm.doc[FIELD_COST_CENTER] !== cost_center) {\n\t\t\t\t\t\t\tfrm.set_value(FIELD_COST_CENTER, cost_center);\n\t\t\t\t\t\t}\n\t\t\t\t\t},\n\t\t\t\t});\n\t\t\t},\n\t\t});\n\t},\n});",
+  "view": "Form"
  }
 ]

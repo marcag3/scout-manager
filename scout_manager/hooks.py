@@ -5,7 +5,10 @@ app_description = "Custom ERPNext app for scout troop management"
 app_email = "admin@example.com"
 app_license = "mit"
 
-from scout_manager.scout_manager.config.names import ARGENT_DISPONIBLE_BLOCK
+from scout_manager.scout_manager.config.names import (
+	ARGENT_DISPONIBLE_BLOCK,
+	TROOP_LETTER_HEADS,
+)
 
 fixtures = [
 	{
@@ -18,15 +21,30 @@ fixtures = [
 	},
 	{
 		"dt": "Custom Field",
-		"filters": [["fieldname", "=", "custom_ordre_affichage"], ["dt", "=", "Cost Center"]],
+		"filters": [["module", "=", "Scout Manager"]],
 	},
 	{
 		"dt": "Property Setter",
 		"filters": [["module", "=", "Scout Manager"]],
 	},
+	{
+		"dt": "Server Script",
+		"filters": [["module", "=", "Scout Manager"]],
+	},
+	{
+		"dt": "Print Format",
+		"filters": [["module", "=", "Scout Manager"]],
+	},
+	{
+		"dt": "Letter Head",
+		"filters": [["name", "in", TROOP_LETTER_HEADS]],
+	},
 ]
 
 after_migrate = [
+	"scout_manager.scout_manager.setup.site_cleanup.remove_site_owned_duplicates",
+	"scout_manager.scout_manager.setup.customizations.tag_troop_customizations",
+	"scout_manager.scout_manager.setup.customizations.cleanup_retired_custom_fields",
 	"scout_manager.scout_manager.utils.widget.cleanup_retired_client_scripts",
 	"scout_manager.scout_manager.utils.widget.sync_argent_disponible_block",
 	"scout_manager.scout_manager.setup.treasurer.setup_scout_treasurer",
