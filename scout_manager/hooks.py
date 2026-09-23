@@ -195,6 +195,9 @@ doctype_js = {
 # Hook on document methods and events
 
 doc_events = {
+	"Journal Entry": {
+		"before_validate": "scout_manager.scout_manager.accounting.journal_entry.sync_bank_entry_dimensions",
+	},
 	"Payment Entry": {
 		"before_validate": "scout_manager.scout_manager.accounting.payment_entry.inherit_dimensions_from_references",
 	},
