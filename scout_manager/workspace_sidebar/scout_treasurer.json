@@ -405,11 +405,35 @@
   {
    "child": 1,
    "collapsible": 1,
+   "icon": "filter",
+   "indent": 0,
+   "keep_closed": 0,
+   "label": "Bank Import Config",
+   "link_to": "Bank Import Config",
+   "link_type": "DocType",
+   "show_arrow": 0,
+   "type": "Link"
+  },
+  {
+   "child": 1,
+   "collapsible": 1,
    "icon": "book",
    "indent": 0,
    "keep_closed": 0,
    "label": "Journal Entry",
    "link_to": "Journal Entry",
+   "link_type": "DocType",
+   "show_arrow": 0,
+   "type": "Link"
+  },
+  {
+   "child": 1,
+   "collapsible": 1,
+   "icon": "filter",
+   "indent": 0,
+   "keep_closed": 0,
+   "label": "Bank Import Config",
+   "link_to": "Bank Import Config",
    "link_type": "DocType",
    "show_arrow": 0,
    "type": "Link"
@@ -683,7 +707,7 @@
    "type": "Link"
   }
  ],
- "modified": "2026-09-23 19:12:24.708268",
+ "modified": "2026-09-23 19:44:32.787499",
  "modified_by": "Administrator",
  "module": "Scout Manager",
  "name": "Scout Treasurer",
