@@ -242,25 +242,19 @@ def ensure_doctype_permissions():
 
 
 def ensure_report_permissions():
+	# Append roles via the Report doc: direct Has Role inserts hit Frappe's
+	# before_insert, which matches parent+role without parenttype and can
+	# false-positive when a Dashboard Chart shares the report name.
 	for report in REPORTS:
 		if not frappe.db.exists("Report", report):
 			continue
 
-		if frappe.db.exists(
-			"Has Role",
-			{"parent": report, "parenttype": "Report", "role": ROLE},
-		):
+		doc = frappe.get_doc("Report", report)
+		if any(row.role == ROLE for row in doc.roles):
 			continue
 
-		frappe.get_doc(
-			{
-				"doctype": "Has Role",
-				"parent": report,
-				"parenttype": "Report",
-				"parentfield": "roles",
-				"role": ROLE,
-			}
-		).insert(ignore_permissions=True)
+		doc.append("roles", {"role": ROLE})
+		doc.save(ignore_permissions=True)
 
 
 def ensure_banking_workspace_links():

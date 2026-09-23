@@ -1,35 +1,42 @@
 {
  "add_total_row": 1,
  "add_translate_data": 0,
+ "columns": [],
+ "creation": "2026-09-22 23:38:16.197606",
+ "disable_prepared_report_automation": 0,
  "disabled": 0,
  "docstatus": 0,
  "doctype": "Report",
- "is_standard": "Yes",
- "module": "Scout Manager",
- "name": "Argent disponible par unité",
- "report_name": "Argent disponible par unité",
- "report_type": "Script Report",
- "ref_doctype": "GL Entry",
+ "doctype_to_sync": [],
  "filters": [
   {
    "fieldname": "company",
-   "label": "Compagnie",
    "fieldtype": "Link",
-   "options": "Company",
+   "label": "Compagnie",
    "mandatory": 1,
-   "wildcard_filter": 0,
-   "default": null
+   "options": "Company",
+   "wildcard_filter": 0
   },
   {
    "fieldname": "to_date",
-   "label": "Au",
    "fieldtype": "Date",
-   "options": null,
+   "label": "Au",
    "mandatory": 1,
-   "wildcard_filter": 0,
-   "default": null
+   "wildcard_filter": 0
   }
  ],
+ "idx": 0,
+ "is_standard": "Yes",
+ "letter_head": null,
+ "modified": "2026-09-22 23:45:18.842164",
+ "modified_by": "Administrator",
+ "module": "Scout Manager",
+ "name": "Argent disponible par unit\u00e9",
+ "owner": "Administrator",
+ "prepared_report": 0,
+ "ref_doctype": "GL Entry",
+ "report_name": "Argent disponible par unit\u00e9",
+ "report_type": "Script Report",
  "roles": [
   {
    "role": "Accounts Manager"
@@ -39,6 +46,11 @@
   },
   {
    "role": "Auditor"
+  },
+  {
+   "role": "Scout Treasurer"
   }
- ]
+ ],
+ "snapshot_report": 0,
+ "timeout": 0
 }
