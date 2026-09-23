@@ -3,14 +3,13 @@
 import frappe
 
 from scout_manager.scout_manager.config.names import (
+	APP_MODULE,
 	RETIRED_CUSTOM_FIELDS,
 	TROOP_CUSTOM_FIELDS,
 	TROOP_PRINT_FORMATS,
 	TROOP_PROPERTY_SETTER_DOCTYPES,
 	TROOP_SERVER_SCRIPTS,
 )
-
-APP_MODULE = "Scout Manager"
 
 
 def tag_troop_customizations():

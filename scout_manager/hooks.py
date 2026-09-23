@@ -6,6 +6,7 @@ app_email = "admin@example.com"
 app_license = "mit"
 
 from scout_manager.scout_manager.config.names import (
+	APP_MODULE,
 	ARGENT_DISPONIBLE_BLOCK,
 	TROOP_LETTER_HEADS,
 )
@@ -17,23 +18,23 @@ fixtures = [
 	},
 	{
 		"dt": "Client Script",
-		"filters": [["module", "=", "Scout Manager"], ["enabled", "=", 1]],
+		"filters": [["module", "=", APP_MODULE], ["enabled", "=", 1]],
 	},
 	{
 		"dt": "Custom Field",
-		"filters": [["module", "=", "Scout Manager"]],
+		"filters": [["module", "=", APP_MODULE]],
 	},
 	{
 		"dt": "Property Setter",
-		"filters": [["module", "=", "Scout Manager"]],
+		"filters": [["module", "=", APP_MODULE]],
 	},
 	{
 		"dt": "Server Script",
-		"filters": [["module", "=", "Scout Manager"]],
+		"filters": [["module", "=", APP_MODULE]],
 	},
 	{
 		"dt": "Print Format",
-		"filters": [["module", "=", "Scout Manager"]],
+		"filters": [["module", "=", APP_MODULE]],
 	},
 	{
 		"dt": "Letter Head",

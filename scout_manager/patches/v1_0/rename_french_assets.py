@@ -2,17 +2,11 @@
 
 import frappe
 
-
-RENAMES = (
-	("Report", "Argent disponible par unité", "Available Funds per Unit"),
-	("Report", "Rentabilité par projet par centre de coût", "Project Profitability by Cost Center"),
-	("Custom HTML Block", "Argent disponible", "Available Funds"),
-	("Dashboard Chart", "Argent disponible par unité", "Available Funds per Unit"),
-)
+from scout_manager.scout_manager.config.names import FRENCH_ASSET_RENAMES
 
 
 def execute():
-	for doctype, old_name, new_name in RENAMES:
+	for doctype, old_name, new_name in FRENCH_ASSET_RENAMES:
 		if not frappe.db.exists(doctype, old_name):
 			continue
 

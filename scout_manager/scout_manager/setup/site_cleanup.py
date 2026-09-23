@@ -3,45 +3,15 @@
 import frappe
 
 from scout_manager.scout_manager.config.names import (
+	APP_DASHBOARD_CHARTS,
+	APP_DASHBOARD_CHART_SOURCES,
+	APP_MODULE,
+	APP_NAME,
+	APP_NUMBER_CARDS,
+	APP_REPORTS,
+	APP_WORKSPACES,
 	ARGENT_DISPONIBLE_BLOCK,
-	REPORT_ARGENT_DISPONIBLE,
-	REPORT_BALANCE_SHEET_CC,
-	REPORT_RENTABILITE_CC,
-)
-
-APP_MODULE = "Scout Manager"
-APP_NAME = "scout_manager"
-
-APP_REPORTS = (
-	REPORT_ARGENT_DISPONIBLE,
-	REPORT_BALANCE_SHEET_CC,
-	REPORT_RENTABILITE_CC,
-)
-
-APP_WORKSPACE_ASSETS = ("Scout Treasurer",)
-
-APP_DASHBOARD_CHARTS = (
-	"Available Funds per Unit",
-	"Flux de trésorerie (12 mois)",
-	"Pertes et profits (mensuel)",
-	"Rentabilité par projet",
-)
-
-APP_DASHBOARD_CHART_SOURCES = (
-	"Scout Cash by Unit",
-	"Scout Cash Flow",
-	"Scout Project Profitability",
-)
-
-APP_NUMBER_CARDS = (
-	"Factures clients en retard",
-	"Factures fournisseurs à payer",
-	"Solde banque et caisse",
-	"Total des factures fournisseurs",
-	"Total décaissé",
-	"Total encaissé",
-	"Total facturé",
-	"Transactions bancaires à réconcilier",
+	ARGENT_DISPONIBLE_JS,
 )
 
 
@@ -57,7 +27,7 @@ def remove_site_owned_duplicates():
 		if _remove_module_owned_doc("Report", report_name):
 			removed.append(f"Report/{report_name}")
 
-	for asset_name in APP_WORKSPACE_ASSETS:
+	for asset_name in APP_WORKSPACES:
 		for doctype in ("Workspace", "Workspace Sidebar", "Dashboard", "Desktop Icon"):
 			if _remove_app_asset(doctype, asset_name):
 				removed.append(f"{doctype}/{asset_name}")
@@ -117,7 +87,8 @@ def _remove_custom_html_block():
 		return False
 
 	script = frappe.db.get_value("Custom HTML Block", ARGENT_DISPONIBLE_BLOCK, "script") or ""
-	if "/assets/scout_manager/js/argent_disponible_widget.js" in script:
+	widget_script = f"/assets/{APP_NAME}/js/{ARGENT_DISPONIBLE_JS}"
+	if widget_script in script:
 		return False
 
 	frappe.delete_doc("Custom HTML Block", ARGENT_DISPONIBLE_BLOCK, force=True, ignore_permissions=True)

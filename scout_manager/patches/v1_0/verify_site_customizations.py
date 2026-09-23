@@ -1,6 +1,1 @@
-from scout_manager.scout_manager.setup.site_cleanup import remove_site_owned_duplicates
-
-
-def execute():
-	"""Safety pass after module sync and fixtures."""
-	remove_site_owned_duplicates()
+from scout_manager.patches.v1_0.remove_site_customizations import execute

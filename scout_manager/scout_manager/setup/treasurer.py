@@ -6,22 +6,18 @@ from frappe.modules.export_file import strip_default_fields
 from frappe.modules.utils import create_directory_on_app_path
 
 from scout_manager.scout_manager.config.names import (
-	ARGENT_DISPONIBLE_BLOCK,
+	RENAMED_LINK_TARGETS,
 	REPORT_ARGENT_DISPONIBLE,
 	REPORT_BALANCE_SHEET_CC,
 	REPORT_RENTABILITE_CC,
+	ROLE_SCOUT_TREASURER,
+	WORKSPACE_SCOUT_TREASURER,
 )
 
-RENAMED_LINK_TARGETS = {
-	"Argent disponible par unité": REPORT_ARGENT_DISPONIBLE,
-	"Rentabilité par projet par centre de coût": REPORT_RENTABILITE_CC,
-	"Argent disponible": ARGENT_DISPONIBLE_BLOCK,
-}
-
-ROLE = "Scout Treasurer"
-WORKSPACE = "Scout Treasurer"
-SIDEBAR = "Scout Treasurer"
-DASHBOARD = "Scout Treasurer"
+ROLE = ROLE_SCOUT_TREASURER
+WORKSPACE = WORKSPACE_SCOUT_TREASURER
+SIDEBAR = WORKSPACE_SCOUT_TREASURER
+DASHBOARD = WORKSPACE_SCOUT_TREASURER
 
 DOCTYPE_ICONS = {
 	"Customer": "customer",

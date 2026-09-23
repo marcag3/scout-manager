@@ -9,7 +9,7 @@ from scout_manager.scout_manager.config.troop import (
 	REALLOC_ACCOUNT_TYPES,
 	RECEIVABLE_ACCOUNT_TYPES,
 )
-from scout_manager.scout_manager.utils.cost_centers import get_unit_cost_centers
+from scout_manager.scout_manager.utils.cost_centers import get_unit_cost_centers, sort_by_unit_order
 
 AMOUNT_FIELDS = ("banque", "caisse", "ar", "passif", "disponible", "disponible_ar")
 
@@ -176,5 +176,4 @@ def get_data(company, to_date, units):
 		as_dict=True,
 	)
 
-	order = {unit["name"]: index for index, unit in enumerate(units)}
-	return sorted(rows, key=lambda row: (order.get(row.cost_center, len(units)), row.cost_center_name))
+	return sort_by_unit_order(rows, units)

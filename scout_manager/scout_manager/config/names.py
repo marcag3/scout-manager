@@ -1,5 +1,11 @@
 """Shared identifiers for reports, widgets, and custom fields."""
 
+APP_MODULE = "Scout Manager"
+APP_NAME = "scout_manager"
+
+WORKSPACE_SCOUT_TREASURER = "Scout Treasurer"
+ROLE_SCOUT_TREASURER = "Scout Treasurer"
+
 REPORT_ARGENT_DISPONIBLE = "Available Funds per Unit"
 REPORT_BALANCE_SHEET_CC = "Balance sheet by cost center"
 REPORT_RENTABILITE_CC = "Project Profitability by Cost Center"
@@ -62,4 +68,51 @@ RETIRED_CLIENT_SCRIPTS = (
 RETIRED_CUSTOM_FIELDS = (
 	"Customer Group-custom_dimension",
 	"Contact-custom_date_de_naissance",
+)
+
+# Site cleanup: drop site-built copies before fixture sync.
+APP_REPORTS = (
+	REPORT_ARGENT_DISPONIBLE,
+	REPORT_BALANCE_SHEET_CC,
+	REPORT_RENTABILITE_CC,
+)
+
+APP_WORKSPACES = (WORKSPACE_SCOUT_TREASURER,)
+
+APP_DASHBOARD_CHARTS = (
+	REPORT_ARGENT_DISPONIBLE,
+	"Flux de trésorerie (12 mois)",
+	"Pertes et profits (mensuel)",
+	"Rentabilité par projet",
+)
+
+APP_DASHBOARD_CHART_SOURCES = (
+	"Scout Cash by Unit",
+	"Scout Cash Flow",
+	"Scout Project Profitability",
+)
+
+APP_NUMBER_CARDS = (
+	"Factures clients en retard",
+	"Factures fournisseurs à payer",
+	"Solde banque et caisse",
+	"Total des factures fournisseurs",
+	"Total décaissé",
+	"Total encaissé",
+	"Total facturé",
+	"Transactions bancaires à réconcilier",
+)
+
+# French names before English rename (workspace links, patches).
+RENAMED_LINK_TARGETS = {
+	"Argent disponible par unité": REPORT_ARGENT_DISPONIBLE,
+	"Rentabilité par projet par centre de coût": REPORT_RENTABILITE_CC,
+	"Argent disponible": ARGENT_DISPONIBLE_BLOCK,
+}
+
+FRENCH_ASSET_RENAMES = (
+	("Report", "Argent disponible par unité", REPORT_ARGENT_DISPONIBLE),
+	("Report", "Rentabilité par projet par centre de coût", REPORT_RENTABILITE_CC),
+	("Custom HTML Block", "Argent disponible", ARGENT_DISPONIBLE_BLOCK),
+	("Dashboard Chart", "Argent disponible par unité", REPORT_ARGENT_DISPONIBLE),
 )
