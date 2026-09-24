@@ -457,6 +457,18 @@ def ensure_banking_workspace_links():
 		if block.get("type") == "shortcut" and block["data"].get("shortcut_name") == "Bank Statement Importer":
 			block["data"]["shortcut_name"] = "Scout Bank Import"
 
+	seen_shortcut_names = set()
+	deduped_content = []
+	for block in content:
+		if block.get("type") == "shortcut":
+			shortcut_name = block["data"].get("shortcut_name")
+			if shortcut_name in seen_shortcut_names:
+				continue
+			seen_shortcut_names.add(shortcut_name)
+		deduped_content.append(block)
+	content = deduped_content
+	shortcut_names = seen_shortcut_names
+
 	if "Scout Bank Import" not in shortcut_names:
 		banking_block_idx = next(
 			(
@@ -516,6 +528,12 @@ def _build_sidebar_items(workspace):
 		}
 	]
 
+	shortcut_link_targets = {
+		shortcut.link_to
+		for shortcut in workspace.shortcuts
+		if shortcut.type != "URL" and shortcut.link_to
+	}
+
 	for shortcut in workspace.shortcuts:
 		items.append(_sidebar_item_for_shortcut(shortcut))
 
@@ -536,6 +554,9 @@ def _build_sidebar_items(workspace):
 			continue
 
 		if link.type != "Link":
+			continue
+
+		if link.link_to in shortcut_link_targets:
 			continue
 
 		icon = "table" if link.link_type == "Report" else DOCTYPE_ICONS.get(link.link_to, "")
